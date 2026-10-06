@@ -109,3 +109,8 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     payload hashes with identical final state. Cache hits remove trie traversal;
     small smoke timings are not used for a performance claim. Changed-fee sibling
     workload has been added and is next to verify before the full matrix.
+
+34. Changed-fee sibling smoke: **48 timed V6 validations passed**, plus 24
+    matching wrong-root/unpaid rejections. Proof-reconstructed noncanonical child
+    roots and rebuilt BALs validate on both nodes. Every changed final balance
+    misses the root cache; trie traversal continues, with no stale root reuse.
