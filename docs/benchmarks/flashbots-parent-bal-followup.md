@@ -97,3 +97,8 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     core, Ethereum node, storage API, and provider, including tests. Retained
     payload telemetry is an estimate of map key/value capacity; process RSS is
     measured separately and includes all node/database allocations.
+
+32. Broader RPC + node-core library nextest: **300 passed**, 0 failed, one
+    intentionally skipped manual benchmark (126.940 s). Existing blob, tracing,
+    payment, BAL and storage regressions pass alongside root-cache changes.
+    Paired harness now also collects trie walker/node-iterator counters.

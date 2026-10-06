@@ -29,7 +29,7 @@ def metrics(port):
         lines = response.read().decode().splitlines()
     values = {}
     for line in lines:
-        match = re.match(r'((?:reth_)?builder_validation_(?:parent_bal_|stage_|state_root_cache_)\S+)\s+(\S+)', line)
+        match = re.match(r'((?:reth_)?(?:builder_validation_(?:parent_bal_|stage_|state_root_cache_)|trie_(?:walker_|node_iter_))\S+)\s+(\S+)', line)
         if match and 'quantile=' not in match[1]:
             values[match[1]] = float(match[2])
     return values
@@ -262,6 +262,8 @@ def main():
                         assert root_hits == (args.repeats if root_cache else 0), repeat_metrics
                         assert root_misses == int(bool(root_cache)), first_metrics
                         record.update(root_cache_hits=root_hits, root_cache_misses=root_misses,
+                                      first_trie_counters={k: v for k, v in first_metrics.items() if 'trie_' in k},
+                                      repeat_trie_counters={k: v/args.repeats for k, v in repeat_metrics.items() if 'trie_' in k},
                                       root_cache_retained_payload_bytes=sum(v for k, v in after_first[i].items() if k.endswith('_retained_payload_bytes')),
                                       first_stages_us=stages(first_metrics), repeat_stages_us=stages(repeat_metrics),
                                       first_provider_slots=count(first_metrics, 'provider_slots'),
@@ -285,6 +287,9 @@ def main():
                                  'rss_median_bytes': statistics.median(p[name]['rss_after'] for p in pairs),
                                  'root_cache_retained_payload_bytes': statistics.median(p[name]['root_cache_retained_payload_bytes'] for p in pairs)}
                     for phase in ['first', 'repeat']:
+                        trie_key = phase+'_trie_counters'
+                        row[name][trie_key] = {counter: statistics.mean(p[name][trie_key].get(counter, 0) for p in pairs)
+                                              for counter in set().union(*(p[name][trie_key] for p in pairs))}
                         key = phase+'_stages_us'
                         row[name][key] = {stage: statistics.mean(p[name][key].get(stage, 0) for p in pairs)
                                          for stage in set().union(*(p[name][key] for p in pairs))}
