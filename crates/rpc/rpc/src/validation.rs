@@ -728,7 +728,7 @@ pub struct ValidationApiInner<Provider, E: ConfigureEvm, T: PayloadTypes> {
     /// latest head block state. Uses async `RwLock` to safely handle concurrent validation
     /// requests.
     cached_state: RwLock<(B256, CachedReads, Arc<LazyParentBal>)>,
-    /// Optional loader for parent post-state, invoked only beneath a CachedReads miss.
+    /// Optional loader for parent post-state, invoked only beneath a `CachedReads` miss.
     parent_bal_loader: Option<BalLoader>,
     /// Recently validated blob, commitment, and cell-proof tuples shared by V2 submissions.
     validated_blobs: BlobValidationCache,

@@ -92,6 +92,10 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     `LLVM_SYS_221_PREFIX`. This is the unrelated JIT dependency. Full-workspace
     lint remains unverified; checking affected packages without default features.
 
+16. Affected-package clippy completed successfully (5m 09s), finding two rustdoc
+    formatting warnings and two test-fixture initializer warnings. Corrected
+    all four and rerunning the same scope with `-D warnings`.
+
 ## Design
 
 Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:

@@ -1,4 +1,4 @@
-//! Read-only parent post-state beneath CachedReads and the child executor's mutable State.
+//! Read-only parent post-state beneath `CachedReads` and the child executor's mutable `State`.
 
 use alloy_eip7928::bal::DecodedBal;
 use alloy_primitives::{Address, B256, U256};
@@ -264,11 +264,13 @@ mod tests {
         for (slot, value) in [(1, 42), (2, 99), (3, 0)] {
             db.insert_account_storage(ADDRESS, U256::from(slot), U256::from(value)).unwrap();
         }
-        let mut account = AccountBal::default();
-        account.balance = BalWrites::new(vec![
-            (BlockAccessIndex::new(0), U256::from(80)),
-            (BlockAccessIndex::new(4), U256::from(100)),
-        ]);
+        let mut account = AccountBal {
+            balance: BalWrites::new(vec![
+                (BlockAccessIndex::new(0), U256::from(80)),
+                (BlockAccessIndex::new(4), U256::from(100)),
+            ]),
+            ..Default::default()
+        };
         account.storage.storage.insert(
             U256::from(1),
             BalWrites::new(vec![
@@ -728,9 +730,11 @@ mod tests {
         for overlap in [0, 25, 100] {
             let mut bal = Bal::default();
             for a in 1..=ACCOUNTS {
-                let mut account = AccountBal::default();
                 // Partial metadata on purpose: account reads must still hit the provider.
-                account.balance = BalWrites::new(vec![(BlockAccessIndex::new(4), U256::from(100))]);
+                let mut account = AccountBal {
+                    balance: BalWrites::new(vec![(BlockAccessIndex::new(4), U256::from(100))]),
+                    ..Default::default()
+                };
                 for k in 0..SLOTS {
                     let key = if k < SLOTS * overlap / 100 { k } else { k + SLOTS };
                     account.storage.storage.insert(
