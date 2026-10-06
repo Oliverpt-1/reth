@@ -53,6 +53,13 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
    full EVM/root comparisons to missing BALs, cleared storage, complete accounts,
    and deleted accounts. The next regression run verifies these additions.
 
+9. Expanded regression run identified two fixture errors: non-created code changes
+   are served inline by revm's AccountInfo, not added to its hash cache; and the
+   Amsterdam cleared-slot write requires more gas than the old test's 100K limit.
+   Check inline changed code, check hash lookup after creation, and raise test gas
+   to 500K. Compare full receipts/BAL/bundles/roots across five parent-state cases.
+   Avoid cloning the configured disallow set for each worker; share its API Arc.
+
 ## Measurement scope
 
 This workspace has approximately 30 GB available disk and 10 GB RAM. No synced

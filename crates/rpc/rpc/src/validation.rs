@@ -266,7 +266,7 @@ where
         );
         let evm_config = self.evm_config.clone();
         let execution_block = block.clone();
-        let disallow = self.disallow.clone();
+        let validation_inner = self.inner.clone();
 
         let use_bal = loader.is_some();
         let execute = move || -> Result<_, ValidationApiError> {
@@ -289,12 +289,12 @@ where
                 executor.take_bal().map(|bal| compute_block_access_list_hash(&bal));
 
             let mut state = executor.into_state();
-            if !disallow.is_empty() {
+            if !validation_inner.disallow.is_empty() {
                 // Check whether the submission interacted with any blacklisted account by
                 // scanning the `State`'s cache that records everything read from database
                 // during execution.
                 for account in state.cache.accounts.keys() {
-                    if disallow.contains(account) {
+                    if validation_inner.disallow.contains(account) {
                         return Err(ValidationApiError::Blacklist(*account))
                     }
                 }

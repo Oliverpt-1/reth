@@ -145,6 +145,8 @@ def main():
     version = subprocess.check_output([str(args.binary), '--version'], text=True).strip()
     results = {'binary': str(args.binary), 'version': version, 'slots': args.slots,
                'samples': args.samples, 'repeats': args.repeats, 'scope': 'isolated Amsterdam dev nodes',
+               'cpu_quota': Path('/sys/fs/cgroup/cpu.max').read_text().strip(),
+               'memory_limit_bytes': Path('/sys/fs/cgroup/memory.max').read_text().strip(),
                'rows': [], 'raw': []}
     for cache_kind in ['cold', 'normal']:
         for enabled in [False, True]:
@@ -206,6 +208,9 @@ def main():
                                   'child_bal_bytes': (len(request['execution_payload']['block_access_list'])-2)//2,
                                   'first_metrics': {k: after_first.get(k, 0)-before.get(k, 0) for k in set(before)|set(after_first)},
                                   'repeat_metrics': {k: after.get(k, 0)-after_first.get(k, 0) for k in set(after)|set(after_first)}}
+                        # Inspect serialized parent size after all timed/metric intervals.
+                        parent_bal = rpc(args.port, 'eth_getBlockAccessListRaw', [child['parentHash']])
+                        record['parent_bal_bytes'] = (len(parent_bal)-2)//2 if parent_bal else 0
                         def read_count(kind, phase):
                             return sum(value for key, value in record[phase].items()
                                        if '_reads{' in key and f'kind="{kind}"' in key)

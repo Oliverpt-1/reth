@@ -436,13 +436,14 @@ mod tests {
             assert_eq!(state.basic(ADDRESS).unwrap().unwrap().balance, U256::from(200));
             assert_eq!(state.storage(ADDRESS, U256::from(1)).unwrap(), U256::from(88));
             assert_eq!(state.basic(ADDRESS).unwrap().unwrap().nonce, 8);
-            assert_eq!(state.code_by_hash(child_code.hash_slow()).unwrap(), child_code);
+            assert_eq!(state.basic(ADDRESS).unwrap().unwrap().code, Some(child_code.clone()));
             // A child creation clears old storage, including slots present in the parent's BAL.
             state.commit(HashMap::from_iter([(
                 ADDRESS,
                 Account::from(info).with_touched_mark().with_created_mark(),
             )]));
             assert_eq!(state.storage(ADDRESS, U256::from(1)).unwrap(), U256::ZERO);
+            assert_eq!(state.code_by_hash(child_code.hash_slow()).unwrap(), child_code);
         }
         // CachedReads stores only parent values, never committed child modifications.
         let mut next = cache.as_db_mut(adapter(&db, &lazy, Some(&load)));
@@ -492,7 +493,7 @@ mod tests {
                         chain_id: Some(1),
                         nonce,
                         gas_price: 0,
-                        gas_limit: 100_000,
+                        gas_limit: 500_000,
                         to: TxKind::Call(ADDRESS),
                         value: U256::ZERO,
                         input: Bytes::new(),
@@ -510,7 +511,7 @@ mod tests {
                 header: Header {
                     number: 1,
                     timestamp: 1,
-                    gas_limit: 1_000_000,
+                    gas_limit: 2_000_000,
                     base_fee_per_gas: Some(0),
                     excess_blob_gas: Some(0),
                     parent_beacon_block_root: Some(B256::ZERO),
@@ -578,7 +579,11 @@ mod tests {
                     enabled.then_some(&load),
                 )));
                 let result = executor.execute_one(&block).unwrap();
-                assert!(result.receipts.iter().all(|receipt| receipt.success));
+                assert!(
+                    result.receipts.iter().all(|receipt| receipt.success),
+                    "variant {variant}, enabled {enabled}, receipts {:?}",
+                    result.receipts
+                );
                 let rebuilt_bal = executor.take_bal().unwrap();
                 let mut state = executor.into_state();
                 let bundle = state.take_bundle();
@@ -719,7 +724,7 @@ mod tests {
         );
         let cache_loader: BalLoader =
             Arc::new(move |hash| futures::executor::block_on(cache.get_bal(hash)).unwrap());
-        println!("MDBX_BENCH accounts={}, slots_per_account={}, samples={}, build=debug, OS_page_cache=warm", ACCOUNTS, SLOTS, SAMPLES);
+        println!("MDBX_BENCH accounts={}, slots_per_account={}, samples={}, build={}, OS_page_cache=warm", ACCOUNTS, SLOTS, SAMPLES, if cfg!(debug_assertions) { "debug" } else { "release" });
         for overlap in [0, 25, 100] {
             let mut bal = Bal::default();
             for a in 1..=ACCOUNTS {
