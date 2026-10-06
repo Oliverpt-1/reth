@@ -45,6 +45,14 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
    Timing from this test-suite run is discarded because tests were parallel; rerun
    the benchmark in isolation, then build an optimized node for RPC measurements.
 
+8. Real-node metrics smoke passed: provider slot reads per first submission were
+   64/48/0 at 0/25/100% overlap, with 9 metadata reads in every case. All repeated
+   submissions had zero EVM provider reads and zero BAL loads. No latency claims:
+   release compilation ran concurrently. The added provider-error regression
+   needed Reth's DBErrorMarker-compatible ProviderError; corrected it and expanded
+   full EVM/root comparisons to missing BALs, cleared storage, complete accounts,
+   and deleted accounts. The next regression run verifies these additions.
+
 ## Measurement scope
 
 This workspace has approximately 30 GB available disk and 10 GB RAM. No synced

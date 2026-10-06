@@ -423,6 +423,10 @@ mod tests {
             let mut info = state.basic(ADDRESS).unwrap().unwrap();
             assert_eq!(state.storage(ADDRESS, U256::from(1)).unwrap(), U256::from(42));
             info.balance = U256::from(200);
+            info.nonce = 8;
+            let child_code = Bytecode::new_raw(Bytes::from_static(&[0x60, 0x01, 0x00]));
+            info.code_hash = child_code.hash_slow();
+            info.code = Some(child_code.clone());
             let mut child = Account::from(info.clone()).with_touched_mark();
             child.storage.insert(
                 U256::from(1),
@@ -431,6 +435,8 @@ mod tests {
             state.commit(HashMap::from_iter([(ADDRESS, child)]));
             assert_eq!(state.basic(ADDRESS).unwrap().unwrap().balance, U256::from(200));
             assert_eq!(state.storage(ADDRESS, U256::from(1)).unwrap(), U256::from(88));
+            assert_eq!(state.basic(ADDRESS).unwrap().unwrap().nonce, 8);
+            assert_eq!(state.code_by_hash(child_code.hash_slow()).unwrap(), child_code);
             // A child creation clears old storage, including slots present in the parent's BAL.
             state.commit(HashMap::from_iter([(
                 ADDRESS,
@@ -520,82 +526,128 @@ mod tests {
             vec![OTHER; 2],
         );
 
-        let mut outputs = Vec::new();
-        for enabled in [false, true] {
-            let (mut db, mut bal) = fixture();
-            db.db.insert_account_info(
-                OTHER,
-                AccountInfo { balance: U256::from(1_000_000), ..Default::default() },
-            );
-            let mut contract = db.db.basic_ref(ADDRESS).unwrap().unwrap();
-            contract.code_hash = code.hash_slow();
-            contract.code = Some(code.clone());
-            db.db.insert_account_info(ADDRESS, contract);
-            bal.accounts.get_mut(&ADDRESS).unwrap().code =
-                BalWrites::new(vec![(BlockAccessIndex::new(4), (code.hash_slow(), code.clone()))]);
-            let (load, _) = loader(Some(bal));
-            let lazy = LazyParentBal::default();
-            let mut cache = CachedReads::default();
-            let mut executor =
-                evm.batch_executor(cache.as_db_mut(adapter(&db, &lazy, enabled.then_some(&load))));
-            let result = executor.execute_one(&block).unwrap();
-            assert!(result.receipts.iter().all(|receipt| receipt.success));
-            let rebuilt_bal = executor.take_bal().unwrap();
-            let mut state = executor.into_state();
-            let bundle = state.take_bundle();
-            drop(state);
-            assert_eq!(
-                bundle.state[&ADDRESS].storage[&U256::from(1)].present_value,
-                U256::from(88)
-            );
-
-            // Compute a real MPT root from the complete post-state, including untouched slots.
-            let mut addresses: Vec<_> =
-                db.db.cache.accounts.keys().copied().chain(bundle.state.keys().copied()).collect();
-            addresses.sort_unstable();
-            addresses.dedup();
-            let accounts = addresses.into_iter().filter_map(|address| {
-                let changed = bundle.state.get(&address);
-                let info = changed
-                    .map(|account| account.info.clone())
-                    .unwrap_or_else(|| db.db.basic_ref(address).unwrap())?;
-                if info.is_empty() {
-                    return None
+        // partial/code writes, unavailable BAL, explicit storage clear, complete created
+        // account metadata, and deletion all execute against exactly the same parent state.
+        for variant in 0..5 {
+            let mut outputs = Vec::new();
+            for enabled in [false, true] {
+                let (mut db, mut bal) = fixture();
+                db.db.insert_account_info(
+                    OTHER,
+                    AccountInfo { balance: U256::from(1_000_000), ..Default::default() },
+                );
+                let mut contract = db.db.basic_ref(ADDRESS).unwrap().unwrap();
+                contract.code_hash = code.hash_slow();
+                contract.code = Some(code.clone());
+                db.db.insert_account_info(ADDRESS, contract);
+                bal.accounts.get_mut(&ADDRESS).unwrap().code = BalWrites::new(vec![(
+                    BlockAccessIndex::new(4),
+                    (code.hash_slow(), code.clone()),
+                )]);
+                if variant == 2 || variant == 4 {
+                    db.db.insert_account_storage(ADDRESS, U256::from(1), U256::ZERO).unwrap();
+                    bal.accounts
+                        .get_mut(&ADDRESS)
+                        .unwrap()
+                        .storage
+                        .storage
+                        .get_mut(&U256::from(1))
+                        .unwrap()
+                        .force_update(BlockAccessIndex::new(4), U256::ZERO);
                 }
-                let mut slots = db
+                if variant == 3 {
+                    bal.accounts.get_mut(&ADDRESS).unwrap().nonce =
+                        BalWrites::new(vec![(BlockAccessIndex::new(4), 7)]);
+                }
+                if variant == 4 {
+                    db.db.cache.accounts.remove(&ADDRESS);
+                    let account = bal.accounts.get_mut(&ADDRESS).unwrap();
+                    account.balance = BalWrites::new(vec![(BlockAccessIndex::new(4), U256::ZERO)]);
+                    account.nonce = BalWrites::new(vec![(BlockAccessIndex::new(4), 0)]);
+                    account.code = BalWrites::new(vec![(
+                        BlockAccessIndex::new(4),
+                        (alloy_consensus::constants::KECCAK_EMPTY, Bytecode::default()),
+                    )]);
+                }
+                let (load, _) = loader((variant != 1).then_some(bal));
+                let lazy = LazyParentBal::default();
+                let mut cache = CachedReads::default();
+                let mut executor = evm.batch_executor(cache.as_db_mut(adapter(
+                    &db,
+                    &lazy,
+                    enabled.then_some(&load),
+                )));
+                let result = executor.execute_one(&block).unwrap();
+                assert!(result.receipts.iter().all(|receipt| receipt.success));
+                let rebuilt_bal = executor.take_bal().unwrap();
+                let mut state = executor.into_state();
+                let bundle = state.take_bundle();
+                drop(state);
+                if variant != 4 {
+                    assert_eq!(
+                        bundle.state[&ADDRESS].storage[&U256::from(1)].present_value,
+                        U256::from(88)
+                    );
+                }
+
+                // Compute a real MPT root from the complete post-state, including untouched slots.
+                let mut addresses: Vec<_> = db
                     .db
                     .cache
                     .accounts
-                    .get(&address)
-                    .map(|a| a.storage.clone())
-                    .unwrap_or_default();
-                if let Some(account) = changed {
-                    if account.was_destroyed() {
-                        slots.clear();
+                    .keys()
+                    .copied()
+                    .chain(bundle.state.keys().copied())
+                    .collect();
+                addresses.sort_unstable();
+                addresses.dedup();
+                let accounts = addresses.into_iter().filter_map(|address| {
+                    let changed = bundle.state.get(&address);
+                    let info = changed
+                        .map(|account| account.info.clone())
+                        .unwrap_or_else(|| db.db.basic_ref(address).unwrap())?;
+                    if info.is_empty() {
+                        return None
                     }
-                    for (key, value) in &account.storage {
-                        slots.insert(*key, value.present_value);
+                    let mut slots = db
+                        .db
+                        .cache
+                        .accounts
+                        .get(&address)
+                        .map(|a| a.storage.clone())
+                        .unwrap_or_default();
+                    if let Some(account) = changed {
+                        if account.was_destroyed() {
+                            slots.clear();
+                        }
+                        for (key, value) in &account.storage {
+                            slots.insert(*key, value.present_value);
+                        }
                     }
-                }
-                let storage_root = storage_root_unhashed(
-                    slots
-                        .into_iter()
-                        .filter(|(_, value)| !value.is_zero())
-                        .map(|(key, value)| (B256::from(key), value)),
-                );
-                Some((
-                    address,
-                    TrieAccount::new(info.nonce, info.balance, storage_root, info.code_hash),
-                ))
-            });
-            let root = state_root_unhashed(accounts);
-            outputs.push((result, rebuilt_bal, bundle, root, db.reads.storage.get()));
+                    let storage_root = storage_root_unhashed(
+                        slots
+                            .into_iter()
+                            .filter(|(_, value)| !value.is_zero())
+                            .map(|(key, value)| (B256::from(key), value)),
+                    );
+                    Some((
+                        address,
+                        TrieAccount::new(info.nonce, info.balance, storage_root, info.code_hash),
+                    ))
+                });
+                let root = state_root_unhashed(accounts);
+                outputs.push((result, rebuilt_bal, bundle, root, db.reads.storage.get()));
+            }
+            assert_eq!(outputs[0].0, outputs[1].0);
+            assert_eq!(outputs[0].1, outputs[1].1);
+            assert_eq!(outputs[0].2, outputs[1].2);
+            assert_eq!(outputs[0].3, outputs[1].3);
+            if variant != 1 && variant != 4 {
+                assert!(outputs[1].4 < outputs[0].4, "BAL should reduce provider storage reads");
+            } else {
+                assert_eq!(outputs[1].4, outputs[0].4);
+            }
         }
-        assert_eq!(outputs[0].0, outputs[1].0);
-        assert_eq!(outputs[0].1, outputs[1].1);
-        assert_eq!(outputs[0].2, outputs[1].2);
-        assert_eq!(outputs[0].3, outputs[1].3);
-        assert!(outputs[1].4 < outputs[0].4, "BAL should reduce provider storage reads");
     }
     #[test]
     fn parent_commitment_and_pre_amsterdam_fallback() {
@@ -758,5 +810,114 @@ mod tests {
         }
         // Owned runtime shutdown happens from this synchronous benchmark thread.
         runtime.shutdown_timeout(std::time::Duration::from_secs(5));
+    }
+    #[test]
+    fn noncanonical_parent_uses_its_exact_hash_and_post_state() {
+        let (first_db, first_bal) = fixture();
+        let (mut fork_db, mut fork_bal) = fixture();
+        fork_db.db.insert_account_storage(ADDRESS, U256::from(1), U256::from(77)).unwrap();
+        fork_bal
+            .accounts
+            .get_mut(&ADDRESS)
+            .unwrap()
+            .storage
+            .storage
+            .get_mut(&U256::from(1))
+            .unwrap()
+            .force_update(BlockAccessIndex::new(4), U256::from(77));
+        let (first, _) = loader(Some(first_bal));
+        let (fork, _) = loader(Some(fork_bal));
+        let first_hash = B256::repeat_byte(1);
+        let fork_hash = B256::repeat_byte(2);
+        let load: BalLoader = Arc::new(move |hash| {
+            if hash == first_hash {
+                first(hash)
+            } else {
+                assert_eq!(hash, fork_hash);
+                fork(hash)
+            }
+        });
+        for (hash, db, expected) in [(first_hash, &first_db, 42), (fork_hash, &fork_db, 77)] {
+            let lazy = LazyParentBal::default();
+            let db_bal = ParentBalDb {
+                db,
+                hash,
+                bal: &lazy,
+                loader: Some(&load),
+                reads: Default::default(),
+            };
+            assert_eq!(db_bal.storage_ref(ADDRESS, U256::from(1)).unwrap(), U256::from(expected));
+            assert_eq!(db.reads.storage.get(), 0);
+        }
+    }
+    #[test]
+    fn every_partial_account_field_combination_preserves_provider_metadata() {
+        let code = Bytecode::new_raw(Bytes::from_static(&[0x00]));
+        for fields in 0..8 {
+            let (mut db, mut bal) = fixture();
+            let provider_info = AccountInfo {
+                balance: U256::from(100),
+                nonce: 7,
+                code_hash: code.hash_slow(),
+                code: None,
+                ..Default::default()
+            };
+            db.db.insert_account_info(ADDRESS, provider_info.clone());
+            let account = bal.accounts.get_mut(&ADDRESS).unwrap();
+            account.balance = if fields & 1 != 0 {
+                BalWrites::new(vec![(BlockAccessIndex::new(4), U256::from(100))])
+            } else {
+                Default::default()
+            };
+            account.nonce = if fields & 2 != 0 {
+                BalWrites::new(vec![(BlockAccessIndex::new(4), 7)])
+            } else {
+                Default::default()
+            };
+            account.code = if fields & 4 != 0 {
+                BalWrites::new(vec![(BlockAccessIndex::new(4), (code.hash_slow(), code.clone()))])
+            } else {
+                Default::default()
+            };
+            let (load, _) = loader(Some(bal));
+            let lazy = LazyParentBal::default();
+            let info = adapter(&db, &lazy, Some(&load)).basic_ref(ADDRESS).unwrap().unwrap();
+            assert_eq!(info, provider_info, "field mask {fields}");
+            if fields & 4 != 0 {
+                assert_eq!(info.code, Some(code.clone()));
+            }
+            #[cfg(not(feature = "account-ext"))]
+            assert_eq!(db.reads.basic.get(), usize::from(fields != 7));
+        }
+    }
+
+    #[test]
+    fn fallback_provider_errors_are_not_hidden() {
+        struct FailingDb;
+        impl DatabaseRef for FailingDb {
+            type Error = reth_errors::ProviderError;
+            fn basic_ref(&self, _: Address) -> Result<Option<AccountInfo>, Self::Error> {
+                Err(reth_errors::ProviderError::other(std::io::Error::other("account read failed")))
+            }
+            fn storage_ref(&self, _: Address, _: U256) -> Result<U256, Self::Error> {
+                Err(reth_errors::ProviderError::other(std::io::Error::other("storage read failed")))
+            }
+            fn code_by_hash_ref(&self, _: B256) -> Result<Bytecode, Self::Error> {
+                Err(reth_errors::ProviderError::other(std::io::Error::other("code read failed")))
+            }
+            fn block_hash_ref(&self, _: u64) -> Result<B256, Self::Error> {
+                Err(reth_errors::ProviderError::other(std::io::Error::other("hash read failed")))
+            }
+        }
+        let (_, bal) = fixture();
+        let (load, _) = loader(Some(bal));
+        let lazy = LazyParentBal::default();
+        let db = CountingDb { db: FailingDb, reads: Reads::default() };
+        let db_bal = adapter(&db, &lazy, Some(&load));
+        assert_eq!(db_bal.storage_ref(ADDRESS, U256::from(1)).unwrap(), U256::from(42));
+        assert!(db_bal.storage_ref(ADDRESS, U256::from(2)).is_err());
+        assert!(db_bal.basic_ref(ADDRESS).is_err());
+        assert!(db_bal.code_by_hash_ref(B256::ZERO).is_err());
+        assert!(db_bal.block_hash_ref(1).is_err());
     }
 }

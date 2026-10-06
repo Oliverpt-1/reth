@@ -44,7 +44,7 @@ def metrics(port):
         if not line or line.startswith('#'):
             continue
         match = re.match(r'((?:reth_)?builder_validation_parent_bal_\S+)\s+(\S+)', line)
-        if match:
+        if match and 'quantile=' not in match[1]:
             result[match[1]] = float(match[2])
     return result
 
@@ -206,12 +206,26 @@ def main():
                                   'child_bal_bytes': (len(request['execution_payload']['block_access_list'])-2)//2,
                                   'first_metrics': {k: after_first.get(k, 0)-before.get(k, 0) for k in set(before)|set(after_first)},
                                   'repeat_metrics': {k: after.get(k, 0)-after_first.get(k, 0) for k in set(after)|set(after_first)}}
+                        def read_count(kind, phase):
+                            return sum(value for key, value in record[phase].items()
+                                       if '_reads{' in key and f'kind="{kind}"' in key)
+                        expected_hits = args.slots * overlap // 100 if enabled else 0
+                        assert read_count('bal_slots', 'first_metrics') == expected_hits, record
+                        assert read_count('provider_slots', 'first_metrics') == args.slots - expected_hits, record
+                        assert all(value == 0 for value in record['repeat_metrics'].values()), record
+                        record['evm_provider_slots'] = read_count('provider_slots', 'first_metrics')
+                        record['evm_provider_accounts'] = read_count('provider_accounts', 'first_metrics')
+                        record['bal_load_ms'] = 1000 * sum(value for key, value in record['first_metrics'].items()
+                                                         if key.endswith('load_seconds_sum'))
                         records.append(record)
                         results['raw'].append(record)
                     row = {'cache': cache_kind, 'enabled': enabled, 'overlap': overlap,
                            'first_median_ms': statistics.median(first), 'first_p95_ms': percentile(first, .95),
                            'repeat_median_ms': statistics.median(repeated), 'repeat_p95_ms': percentile(repeated, .95),
                            'rss_after_median_bytes': statistics.median([r['rss_after'] for r in records]),
+                           'bal_load_median_ms': statistics.median([r['bal_load_ms'] for r in records]),
+                           'provider_slots_per_first': statistics.mean([r['evm_provider_slots'] for r in records]),
+                           'provider_accounts_per_first': statistics.mean([r['evm_provider_accounts'] for r in records]),
                            'first_metrics_mean': {k: statistics.mean([r['first_metrics'].get(k, 0) for r in records])
                                                   for k in set().union(*(r['first_metrics'] for r in records))}}
                     results['rows'].append(row)
