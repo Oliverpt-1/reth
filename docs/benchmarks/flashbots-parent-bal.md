@@ -82,6 +82,11 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     Read savings verified; results below. Moved test imports into their module
     scope to follow repository style.
 
+14. Refined scheduling path: optimized validation suite **32 passed**, 1 ignored
+    (manual benchmark), 0 failed (6.43 s). Includes the resolved-view cache test
+    and all prior root/state comparisons. Rebuilding the node for a second timed
+    RPC matrix; retrying nightly workspace lint with `m4` available.
+
 ## Design
 
 Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:
