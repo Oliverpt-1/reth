@@ -38,4 +38,38 @@ producer/follower roles will check whether an apparent win depends on node roles
     provider test. Removed it and rerunning with warnings denied. Runtime is
     unaffected; full-workspace JIT lint still requires unavailable LLVM 22.
 
-No latency improvement is claimed until optimized paired measurements pass.
+24. Warning-free affected-package clippy passed (20.97 s). Optimized build
+    succeeded (7m 23s). Cache-only actual-node smoke verified handle availability,
+    exact root validation, and predicted hit/fallback counts at 64 and 512 slots.
+    Smoke sample count is too small for performance conclusions.
+
+25. Full paired direct-BAL run: **7,200 timed V6 validations passed**, 100 parents
+    per 64/512-slot × 0/25/100% overlap case, five repeats each. Nodes imported
+    identical blocks and validated identical submissions in randomized order.
+    Warmup validations prime code/metric handles; two idle CPU intervals after
+    imports exclude background import/trie work. Bootstrap intervals resample
+    whole parent pairs, not correlated repeat requests. No concurrent builds/tests.
+    Direct BAL lookup reduced acquisition to roughly 9–18 µs, but failed to show
+    a reliable first-submission latency improvement. At 512 slots, first paired
+    median changes were +3.7%, +4.1%, +3.2%; 95% intervals include regressions.
+
+## Measured target
+
+At 512 slots / 100% overlap, provider-only median stage times (µs):
+
+| Stage | First | Repeated |
+|---|---:|---:|
+| EVM setup/execution | 1846 | 475 |
+| State-root hashing/calculation | 1651 | 1649 |
+| Read-cache copying | 4.9 | 6.9 |
+| Cache merging | 2.6 | 3.0 |
+| Rebuilt child BAL hashing | 64 | 67 |
+
+At 64 slots, repeated root calculation is approximately 469 µs versus 112 µs
+execution. Reusing root results for exact parent + exact hashed execution changes
+is the next experiment. This will still execute every submission and check its
+consensus outputs, proposer payment, rebuilt BAL, and expected root.
+
+Artifacts: `flashbots-parent-bal-direct-results.json` and
+`flashbots-parent-bal-direct-pairs.csv`. Cache-only BAL is not proven beneficial.
+
