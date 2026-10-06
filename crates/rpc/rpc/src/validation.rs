@@ -1,4 +1,7 @@
-use self::blob_cache::BlobValidationCache;
+use self::{
+    blob_cache::BlobValidationCache,
+    parent_bal::{committed_loader, BalLoader, LazyParentBal, ParentBalDb},
+};
 use alloy_consensus::{
     BlobTransactionValidationError, BlockHeader, EnvKzgSettings, Transaction, TxReceipt,
 };
@@ -37,6 +40,7 @@ use reth_primitives_traits::{
 };
 use reth_revm::{cached::CachedReads, database::StateProviderDatabase};
 use reth_rpc_api::BlockSubmissionValidationApiServer;
+use reth_rpc_eth_types::EthStateCache;
 use reth_rpc_server_types::result::{internal_rpc_err, invalid_params_rpc_err};
 use reth_storage_api::{
     BlockReaderIdExt, HashedPostStateProvider, StateProvider, StateProviderFactory,
@@ -49,6 +53,7 @@ use tokio::sync::{oneshot, RwLock};
 use tracing::warn;
 
 mod blob_cache;
+mod parent_bal;
 
 /// The type that implements the `validation` rpc namespace trait
 #[derive(Clone, Debug, derive_more::Deref)]
@@ -87,6 +92,7 @@ where
             disallow,
             validation_window,
             cached_state: Default::default(),
+            parent_bal_loader: None,
             validated_blobs: Default::default(),
             task_spawner,
             sender_recovery_cache,
@@ -102,23 +108,49 @@ where
         Self { inner }
     }
 
+    /// Enables lazy parent BAL reads through the node's shared ETH cache. The loader runs on
+    /// a blocking execution worker because revm's database interface is synchronous.
+    /// Omitting this builder keeps provider-only validation.
+    pub fn with_parent_bal_cache(mut self, cache: EthStateCache<E::Primitives>) -> Self {
+        Arc::get_mut(&mut self.inner).expect("configure before cloning").parent_bal_loader = Some(
+            Arc::new(move |hash| match futures::executor::block_on(cache.get_bal(hash)) {
+                Ok(bal) => bal,
+                Err(err) => {
+                    warn!(target: "rpc::validation", %err, %hash, "Parent BAL unavailable; using state provider");
+                    None
+                }
+            }),
+        );
+        self
+    }
+
     /// Returns the cached reads for the given head hash.
-    async fn cached_reads(&self, head: B256) -> CachedReads {
-        let cache = self.inner.cached_state.read().await;
-        if cache.0 == head {
-            cache.1.clone()
-        } else {
-            Default::default()
+    async fn cached_reads(&self, head: B256) -> (CachedReads, Arc<LazyParentBal>) {
+        {
+            let cache = self.inner.cached_state.read().await;
+            if cache.0 == head {
+                return (cache.1.clone(), cache.2.clone())
+            }
         }
+        let mut cache = self.inner.cached_state.write().await;
+        if cache.0 != head {
+            *cache = (head, Default::default(), Default::default());
+        }
+        (cache.1.clone(), cache.2.clone())
     }
 
     /// Updates the cached state for the given head hash.
-    async fn update_cached_reads(&self, head: B256, cached_state: CachedReads) {
+    async fn update_cached_reads(
+        &self,
+        head: B256,
+        cached_state: CachedReads,
+        parent_bal: Arc<LazyParentBal>,
+    ) {
         let mut cache = self.inner.cached_state.write().await;
         if cache.0 == head {
             cache.1.extend(cached_state);
         } else {
-            *cache = (head, cached_state)
+            *cache = (head, cached_state, parent_bal)
         }
     }
 
@@ -227,39 +259,58 @@ where
         let parent_header_hash = parent_header.hash();
         let state_provider = self.provider.state_by_block_hash(parent_header_hash)?;
 
-        let mut request_cache = self.cached_reads(parent_header_hash).await;
+        let (mut request_cache, parent_bal) = self.cached_reads(parent_header_hash).await;
+        let loader = committed_loader(
+            self.parent_bal_loader.as_ref(),
+            parent_header.block_access_list_hash(),
+        );
+        let evm_config = self.evm_config.clone();
+        let execution_block = block.clone();
+        let disallow = self.disallow.clone();
 
-        let (output, block_access_list_hash) = {
-            let cached_db = request_cache
-                .as_db_mut(StateProviderDatabase::new((&state_provider).into_evm_state_provider()));
-            let mut executor = self.evm_config.batch_executor(cached_db);
+        let (state_provider, request_cache, parent_bal, output, block_access_list_hash) = self
+            .task_spawner
+            .handle()
+            .spawn_blocking(move || -> Result<_, ValidationApiError> {
+                let parent_db = ParentBalDb {
+                    db: StateProviderDatabase::new((&state_provider).into_evm_state_provider()),
+                    hash: parent_header_hash,
+                    bal: &parent_bal,
+                    loader: loader.as_ref(),
+                    reads: Default::default(),
+                };
+                let cached_db = request_cache.as_db_mut(parent_db);
+                let mut executor = evm_config.batch_executor(cached_db);
+                let result = executor.execute_one(&execution_block)?;
 
-            let result = executor.execute_one(&block)?;
+                // The executor rebuilds the block access list whenever the block header contains a
+                // BAL hash. Comparing the rebuilt hash against the header post execution also
+                // commits to the submitted access list, because the header's BAL hash is derived
+                // from the submitted bytes.
+                let block_access_list_hash =
+                    executor.take_bal().map(|bal| compute_block_access_list_hash(&bal));
 
-            // The executor rebuilds the block access list whenever the block header contains a
-            // BAL hash. Comparing the rebuilt hash against the header post execution also
-            // commits to the submitted access list, because the header's BAL hash is derived
-            // from the submitted bytes.
-            let block_access_list_hash =
-                executor.take_bal().map(|bal| compute_block_access_list_hash(&bal));
-
-            let mut state = executor.into_state();
-            if !self.disallow.is_empty() {
-                // Check whether the submission interacted with any blacklisted account by
-                // scanning the `State`'s cache that records everything read from database
-                // during execution.
-                for account in state.cache.accounts.keys() {
-                    if self.disallow.contains(account) {
-                        return Err(ValidationApiError::Blacklist(*account))
+                let mut state = executor.into_state();
+                if !disallow.is_empty() {
+                    // Check whether the submission interacted with any blacklisted account by
+                    // scanning the `State`'s cache that records everything read from database
+                    // during execution.
+                    for account in state.cache.accounts.keys() {
+                        if disallow.contains(account) {
+                            return Err(ValidationApiError::Blacklist(*account))
+                        }
                     }
                 }
-            }
 
-            (BlockExecutionOutput { state: state.take_bundle(), result }, block_access_list_hash)
-        };
+                let output = BlockExecutionOutput { state: state.take_bundle(), result };
+                drop(state);
+                Ok((state_provider, request_cache, parent_bal, output, block_access_list_hash))
+            })
+            .await
+            .map_err(ProviderError::other)??;
 
         // update the cached reads
-        self.update_cached_reads(parent_header_hash, request_cache).await;
+        self.update_cached_reads(parent_header_hash, request_cache, parent_bal).await;
 
         self.consensus.validate_block_post_execution(
             &block,
@@ -668,7 +719,9 @@ pub struct ValidationApiInner<Provider, E: ConfigureEvm, T: PayloadTypes> {
     /// targeting the same state. Stores a tuple of (`block_hash`, `cached_reads`) for the
     /// latest head block state. Uses async `RwLock` to safely handle concurrent validation
     /// requests.
-    cached_state: RwLock<(B256, CachedReads)>,
+    cached_state: RwLock<(B256, CachedReads, Arc<LazyParentBal>)>,
+    /// Optional loader for parent post-state, invoked only beneath a CachedReads miss.
+    parent_bal_loader: Option<BalLoader>,
     /// Recently validated blob, commitment, and cell-proof tuples shared by V2 submissions.
     validated_blobs: BlobValidationCache,
     /// Task spawner for blocking operations
@@ -855,6 +908,7 @@ mod tests {
     use reth_primitives_traits::{RecoveredBlock, SealedBlock, SealedHeader};
     use reth_provider::test_utils::MockEthProvider;
     use reth_revm::db::{states::bundle_state::BundleState, AccountStatus, BundleAccount};
+    use reth_rpc_eth_types::EthStateCache;
     use reth_tasks::Runtime;
     use revm::state::AccountInfo;
     use std::sync::Arc;
@@ -1165,5 +1219,27 @@ mod tests {
             },
         );
         state
+    }
+    #[tokio::test]
+    async fn parent_hash_scopes_cached_reads_and_lazy_bal_across_reorgs() {
+        let api = test_validation_api(MockEthProvider::default());
+        let first_hash = B256::repeat_byte(1);
+        let fork_hash = B256::repeat_byte(2);
+        let (mut first_reads, first_bal) = api.cached_reads(first_hash).await;
+        first_reads.insert_account(
+            Address::ZERO,
+            AccountInfo { nonce: 9, ..Default::default() },
+            Default::default(),
+        );
+        api.update_cached_reads(first_hash, first_reads, first_bal.clone()).await;
+        let (reads, bal) = api.cached_reads(first_hash).await;
+        assert_eq!(reads.accounts[&Address::ZERO].info.as_ref().unwrap().nonce, 9);
+        assert!(Arc::ptr_eq(&first_bal, &bal));
+        let (reads, bal) = api.cached_reads(fork_hash).await;
+        assert!(reads.accounts.is_empty());
+        assert!(!Arc::ptr_eq(&first_bal, &bal));
+        let (reads, bal) = api.cached_reads(first_hash).await;
+        assert!(reads.accounts.is_empty());
+        assert!(!Arc::ptr_eq(&first_bal, &bal));
     }
 }

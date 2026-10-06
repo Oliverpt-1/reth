@@ -9,6 +9,11 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
    Build stopped before executing tests: libmdbx bindgen could not find `stdarg.h`.
    The workspace has libclang 19 but no clang resource headers. Resolving build prerequisites.
 
+2. With GCC headers supplied via `BINDGEN_EXTRA_CLANG_ARGS`, native prerequisites built.
+   Rust compilation found adapter `Debug` bounds and two test-only import/constant issues.
+   No tests executed in this round. Implementation and regression suite checkpointed;
+   resolving these errors before the next test round.
+
 ## Measurement scope
 
 This workspace has approximately 30 GB available disk and 10 GB RAM. No synced
