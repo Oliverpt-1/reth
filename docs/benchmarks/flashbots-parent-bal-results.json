@@ -1,0 +1,260 @@
+{
+  "binary": "/workspace/reth/target/release/reth",
+  "version": "Reth Version: 2.7.0-dev\nCommit SHA: de9caa3b80012c091ff4ffd1142261c5babba8cb\nBuild Timestamp: 2026-10-06T19:39:01.794896625Z\nBuild Features:\nBuild Profile: release",
+  "slots": 64,
+  "samples": 30,
+  "repeats": 10,
+  "scope": "isolated Amsterdam dev nodes",
+  "cpu_quota": "200000 100000",
+  "memory_limit_bytes": "8589934592",
+  "rows": [
+    {
+      "cache": "cold",
+      "enabled": false,
+      "overlap": 0,
+      "first_median_ms": 2.268826,
+      "first_p95_ms": 2.841545,
+      "repeat_median_ms": 1.0469835,
+      "repeat_p95_ms": 2.022389,
+      "rss_after_median_bytes": 2570999808.0,
+      "bal_load_median_ms": 0.0,
+      "provider_slots_per_first": 64.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "cold",
+      "enabled": false,
+      "overlap": 25,
+      "first_median_ms": 2.221877,
+      "first_p95_ms": 2.405276,
+      "repeat_median_ms": 1.0225469999999999,
+      "repeat_p95_ms": 1.912593,
+      "rss_after_median_bytes": 2600941568.0,
+      "bal_load_median_ms": 0.0,
+      "provider_slots_per_first": 64.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "cold",
+      "enabled": false,
+      "overlap": 100,
+      "first_median_ms": 2.2626315,
+      "first_p95_ms": 2.808815,
+      "repeat_median_ms": 1.0508445,
+      "repeat_p95_ms": 1.904361,
+      "rss_after_median_bytes": 2610427904.0,
+      "bal_load_median_ms": 0.0,
+      "provider_slots_per_first": 64.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "cold",
+      "enabled": true,
+      "overlap": 0,
+      "first_median_ms": 2.249667,
+      "first_p95_ms": 2.729886,
+      "repeat_median_ms": 0.970298,
+      "repeat_p95_ms": 1.848197,
+      "rss_after_median_bytes": 2560307200.0,
+      "bal_load_median_ms": 0.14026649999999974,
+      "provider_slots_per_first": 64.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_loads": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_load_seconds_count": 1.0,
+        "reth_builder_validation_parent_bal_load_seconds_sum": 0.00024476123333333336,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "cold",
+      "enabled": true,
+      "overlap": 25,
+      "first_median_ms": 2.5201955,
+      "first_p95_ms": 2.893102,
+      "repeat_median_ms": 1.0419205,
+      "repeat_p95_ms": 1.908317,
+      "rss_after_median_bytes": 2606639104.0,
+      "bal_load_median_ms": 0.16820850000000015,
+      "provider_slots_per_first": 48.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_loads": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 48.0,
+        "reth_builder_validation_parent_bal_load_seconds_count": 1.0,
+        "reth_builder_validation_parent_bal_load_seconds_sum": 0.000179978,
+        "reth_builder_validation_parent_bal_reads{kind=\"bal_slots\"}": 16.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "cold",
+      "enabled": true,
+      "overlap": 100,
+      "first_median_ms": 2.5361535,
+      "first_p95_ms": 4.870774,
+      "repeat_median_ms": 1.0994875,
+      "repeat_p95_ms": 2.024683,
+      "rss_after_median_bytes": 2610737152.0,
+      "bal_load_median_ms": 0.17035199999999948,
+      "provider_slots_per_first": 0.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_loads": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 0.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_load_seconds_count": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"bal_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_load_seconds_sum": 0.0003206186333333333,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "normal",
+      "enabled": false,
+      "overlap": 0,
+      "first_median_ms": 2.0331055,
+      "first_p95_ms": 2.672165,
+      "repeat_median_ms": 0.953703,
+      "repeat_p95_ms": 1.765562,
+      "rss_after_median_bytes": 2555955200.0,
+      "bal_load_median_ms": 0.0,
+      "provider_slots_per_first": 64.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "normal",
+      "enabled": false,
+      "overlap": 25,
+      "first_median_ms": 2.2980555000000003,
+      "first_p95_ms": 3.092453,
+      "repeat_median_ms": 1.038496,
+      "repeat_p95_ms": 1.964096,
+      "rss_after_median_bytes": 2600882176.0,
+      "bal_load_median_ms": 0.0,
+      "provider_slots_per_first": 64.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "normal",
+      "enabled": false,
+      "overlap": 100,
+      "first_median_ms": 2.235561,
+      "first_p95_ms": 2.57396,
+      "repeat_median_ms": 1.06081,
+      "repeat_p95_ms": 1.900206,
+      "rss_after_median_bytes": 2607503360.0,
+      "bal_load_median_ms": 0.0,
+      "provider_slots_per_first": 64.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "normal",
+      "enabled": true,
+      "overlap": 0,
+      "first_median_ms": 2.3605340000000004,
+      "first_p95_ms": 3.437315,
+      "repeat_median_ms": 1.01123,
+      "repeat_p95_ms": 1.98844,
+      "rss_after_median_bytes": 2559264768.0,
+      "bal_load_median_ms": 0.04326049999999999,
+      "provider_slots_per_first": 64.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_loads": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_load_seconds_count": 1.0,
+        "reth_builder_validation_parent_bal_load_seconds_sum": 5.33073e-05,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "normal",
+      "enabled": true,
+      "overlap": 25,
+      "first_median_ms": 2.6594930000000003,
+      "first_p95_ms": 5.108743,
+      "repeat_median_ms": 1.1210805000000001,
+      "repeat_p95_ms": 2.353749,
+      "rss_after_median_bytes": 2604972032.0,
+      "bal_load_median_ms": 0.07184850000000007,
+      "provider_slots_per_first": 48.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_loads": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 48.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_load_seconds_count": 1.0,
+        "reth_builder_validation_parent_bal_load_seconds_sum": 8.99765666666667e-05,
+        "reth_builder_validation_parent_bal_reads{kind=\"bal_slots\"}": 16.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    },
+    {
+      "cache": "normal",
+      "enabled": true,
+      "overlap": 100,
+      "first_median_ms": 2.7272225,
+      "first_p95_ms": 3.774006,
+      "repeat_median_ms": 1.1413465,
+      "repeat_p95_ms": 2.353189,
+      "rss_after_median_bytes": 2613284864.0,
+      "bal_load_median_ms": 0.06851850000000023,
+      "provider_slots_per_first": 0.0,
+      "provider_accounts_per_first": 9.0,
+      "first_metrics_mean": {
+        "reth_builder_validation_parent_bal_loads": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_slots\"}": 0.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_code\"}": 1.0,
+        "reth_builder_validation_parent_bal_load_seconds_count": 1.0,
+        "reth_builder_validation_parent_bal_reads{kind=\"bal_slots\"}": 64.0,
+        "reth_builder_validation_parent_bal_load_seconds_sum": 7.281046666666668e-05,
+        "reth_builder_validation_parent_bal_reads{kind=\"provider_accounts\"}": 9.0
+      }
+    }
+  ],
+  "binary_sha256": "bf18bdbebda08c480372132ed985a90c0fb1ec64854809039d3c669cb5c40b84",
+  "build_options": {
+    "rust": "1.99.0",
+    "default_features": false,
+    "lto": false,
+    "codegen_units": 16,
+    "debug_info": false
+  },
+  "validations": 3960,
+  "repeat_bal_loads_and_provider_reads": 0
+}

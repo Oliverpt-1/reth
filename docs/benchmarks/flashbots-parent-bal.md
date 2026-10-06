@@ -71,6 +71,12 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     clippy stopped in GMP configuration because `m4` is missing. No lint result
     claimed; resolving prerequisites separately from timed measurements.
 
+12. Optimized real-node run: **3,960 V6 validations passed**, across four nodes
+    and all 12 cache/overlap combinations. First-submission read-count assertions
+    and zero-load/zero-provider-read assertions on every repeat passed. No other
+    build/test job ran during these timings. Results and raw first-submission
+    measurements are committed alongside this report.
+
 ## Design
 
 Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:
@@ -136,3 +142,43 @@ This workspace has a 2-core CPU quota, an 8 GiB memory limit, and a 32 GB filesy
 performance node or builder-submission corpus was supplied or configured. Local
 controlled measurements cannot establish production validation performance.
 Production-node acceptance remains open until a suitable node and workload exist.
+
+## Optimized local-node results
+
+30 first submissions and 300 repeats per row. Medians in milliseconds;
+first p95 is in parentheses. Cold means the ETH BAL LRU is disabled; normal
+uses its default capacity with prewarming disabled in both cases. The local
+node creates the parent itself, so normal-cache results are mostly cache hits.
+These are sequential runs, not randomized paired production trials.
+
+| BAL cache | Slot overlap | First off → on (p95) | Repeat off → on | Provider slots off → on | BAL load on | RSS off → on (MiB) |
+|---|---:|---|---|---|---:|---|
+| cold | 0% | 2.269 → 2.250 (2.842 → 2.730) | 1.047 → 0.970 | 64 → 64 | 0.140 | 2451.9 → 2441.7 |
+| cold | 25% | 2.222 → 2.520 (2.405 → 2.893) | 1.023 → 1.042 | 64 → 48 | 0.168 | 2480.5 → 2485.9 |
+| cold | 100% | 2.263 → 2.536 (2.809 → 4.871) | 1.051 → 1.099 | 64 → 0 | 0.170 | 2489.5 → 2489.8 |
+| normal | 0% | 2.033 → 2.361 (2.672 → 3.437) | 0.954 → 1.011 | 64 → 64 | 0.043 | 2437.5 → 2440.7 |
+| normal | 25% | 2.298 → 2.659 (3.092 → 5.109) | 1.038 → 1.121 | 64 → 48 | 0.072 | 2480.4 → 2484.3 |
+| normal | 100% | 2.236 → 2.727 (2.574 → 3.774) | 1.061 → 1.141 | 64 → 0 | 0.069 | 2486.7 → 2492.2 |
+
+Every first validation made 9 provider account-metadata reads and 1 code read in
+both modes; this BAL records partial accounts. Every repeated validation made
+zero EVM provider reads and zero BAL loads. Serialized parent BALs were 660–677
+bytes. Cold fetch/decode/cache service cost was 0.140–0.170 ms median; normal-cache
+retrieval was 0.043–0.072 ms. These are combined costs, not isolated decode costs.
+RSS is whole-node resident memory, strongly affected by allocator/database/cache
+history; these differences do not isolate the incremental decoded BAL allocation.
+
+For this small, warm workload, eliminating up to 64 provider slot calls did **not**
+improve end-to-end latency. With the normal cache, first medians were 16–22% higher;
+repeats were 6–8% higher despite no BAL reloads. The extra worker scheduling remains
+on BAL-enabled repeats, and can outweigh cheap MDBX reads. Cold results vary from
+approximately equal at 0% overlap to 12–14% slower at 25/100%. This supports an
+experimental opt-in default, rather than enabling the optimization globally.
+
+The binary embeds commit `de9caa3b8` from build metadata generated earlier in the
+build; use the SHA-256 and build options in `flashbots-parent-bal-results.json` to
+identify the measured artifact. Later commits include test/documentation changes
+and sharing the existing validation Arc instead of copying its disallow set.
+Full raw first latencies, loads, counts, sizes, and RSS are in
+`flashbots-parent-bal-first.csv`; repeat distributions are in the results JSON.
+Production performance acceptance remains open.
