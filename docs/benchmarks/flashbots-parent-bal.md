@@ -14,6 +14,11 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
    No tests executed in this round. Implementation and regression suite checkpointed;
    resolving these errors before the next test round.
 
+3. Targeted validation suite: **29 passed**, 0 failed (8.97 s test runtime).
+   Includes 10 parent BAL regressions, an Amsterdam Ethereum block with two contract
+   calls, identical receipts/rebuilt BAL/bundle state/MPT roots, and parent-hash
+   cache isolation across a simulated reorg. Fixed adapter Debug and test imports.
+
 ## Measurement scope
 
 This workspace has approximately 30 GB available disk and 10 GB RAM. No synced

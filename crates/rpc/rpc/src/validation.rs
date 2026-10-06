@@ -908,7 +908,6 @@ mod tests {
     use reth_primitives_traits::{RecoveredBlock, SealedBlock, SealedHeader};
     use reth_provider::test_utils::MockEthProvider;
     use reth_revm::db::{states::bundle_state::BundleState, AccountStatus, BundleAccount};
-    use reth_rpc_eth_types::EthStateCache;
     use reth_tasks::Runtime;
     use revm::state::AccountInfo;
     use std::sync::Arc;

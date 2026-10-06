@@ -46,6 +46,12 @@ pub(super) struct ParentBalDb<'a, DB> {
     pub(super) reads: ParentBalReads,
 }
 
+impl<DB> std::fmt::Debug for ParentBalDb<'_, DB> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ParentBalDb").field("hash", &self.hash).finish_non_exhaustive()
+    }
+}
+
 impl<DB: DatabaseRef> DatabaseRef for ParentBalDb<'_, DB> {
     type Error = DB::Error;
 
@@ -386,7 +392,7 @@ mod tests {
         account.nonce = BalWrites::new(vec![(BlockAccessIndex::new(4), 0)]);
         account.code = BalWrites::new(vec![(
             BlockAccessIndex::new(4),
-            (alloy_primitives::KECCAK_EMPTY, Bytecode::default()),
+            (alloy_consensus::constants::KECCAK_EMPTY, Bytecode::default()),
         )]);
         account
             .storage
@@ -454,7 +460,7 @@ mod tests {
     }
     #[test]
     fn ethereum_execution_receipts_bal_and_state_roots_match() {
-        use alloy_consensus::{Header, TxLegacy};
+        use alloy_consensus::{Header, SignableTransaction, TxLegacy};
         use alloy_primitives::{Signature, TxKind};
         use reth_chainspec::{ChainSpecBuilder, MAINNET};
         use reth_ethereum_primitives::{Block, BlockBody, TransactionSigned};
