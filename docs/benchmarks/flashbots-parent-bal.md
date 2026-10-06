@@ -3,6 +3,58 @@
 Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
 330 commits ahead of the fork's main at task start.
 
+## Final outcome
+
+The optimization saves provider slot reads but does **not** improve first-submission
+latency in these controlled warm-state workloads. Keep it experimental, opt-in,
+and default-off (`--rpc.flashbots-parent-bal`). Repeated submissions load no BAL
+and read no EVM provider data; resolved parents also avoid the extra worker hop.
+
+Correctness: 288 RPC/node-core library tests passed, then 32 final validation tests
+passed, including the expanded lifecycle/root regressions. Two optimized actual
+node matrices each passed 3,960 V6 validations (7,920 total). Affected-package
+clippy passes with `-D warnings`; full workspace all-feature clippy is blocked by
+missing LLVM 22. Production-node/workload acceptance remains open.
+
+Final actual-node matrix: 2-core CPU quota, 8 GiB memory limit; Rust 1.99.0 release,
+no default features, no LTO, 16 codegen units. Four sequential Amsterdam dev nodes,
+30 first submissions + 300 repeats per row, 64 storage slots. Off/on medians in
+milliseconds; no concurrent build/test work during timing. “Cold” disables only
+the decoded BAL LRU; state and raw BAL storage remain warm from parent execution.
+Both modes use this branch's read instrumentation. These are sequential synthetic
+runs, not randomized paired production trials.
+
+| BAL cache | Slot overlap | First off → on | Repeat off → on | Provider slots off → on | BAL load on | RSS off → on (MiB) |
+|---|---:|---|---|---|---:|---|
+| cold | 0% | 2.196 → 2.723 | 0.983 → 1.064 | 64 → 64 | 0.177 | 2446.1 → 2451.5 |
+| cold | 25% | 2.409 → 2.887 | 1.106 → 1.177 | 64 → 48 | 0.200 | 2482.3 → 2480.8 |
+| cold | 100% | 2.408 → 2.624 | 1.068 → 1.103 | 64 → 0 | 0.188 | 2490.3 → 2492.8 |
+| normal | 0% | 2.135 → 2.296 | 0.958 → 0.996 | 64 → 64 | 0.070 | 2440.4 → 2436.3 |
+| normal | 25% | 2.170 → 2.674 | 1.008 → 1.069 | 64 → 48 | 0.081 | 2482.6 → 2476.1 |
+| normal | 100% | 2.333 → 2.544 | 1.129 → 1.080 | 64 → 0 | 0.079 | 2491.7 → 2491.2 |
+
+First provider metadata/code reads remain 9/1 in both modes, because parent account
+fields are partial. Every repeat has zero BAL loads and zero EVM provider reads.
+Parent BALs are 660–677 bytes. Combined first retrieval cost: cold 0.177–0.200 ms,
+normal 0.070–0.081 ms. At 100% normal-cache overlap, first latency is 9% higher;
+repeat latency is 4% lower in this run, within the variation of sequential trials.
+There is no consistent latency win. A separate 1,024-slot cold-BAL MDBX experiment
+also saves every slot read but raises first-view time 306 → 398 µs; decode alone
+costs about 93 µs for 6.7 KB.
+
+Whole-node RSS is approximately 2.4 GiB. On/off differences range from −6.5 to
++5.4 MiB and are dominated by process/allocator/cache history; they do not isolate
+BAL allocation cost. The current parent pins one shared decoded Arc, with earlier
+parents retained only while requests remain in flight. EVM read counters exclude
+state-root/proof provider reads.
+
+Final summary/p95/counters are in [results JSON](flashbots-parent-bal-results.json);
+raw first latency/load/read/size/RSS records are in
+[first-submission CSV](flashbots-parent-bal-first.csv). The measured binary embeds
+commit `6e836d963` (the final runtime worker refinement); subsequent source edits
+change rustdoc and equivalent test initializers only. Its SHA-256 is recorded in
+the JSON. The initial matrix is retained below for the experiment history.
+
 ## Test rounds
 
 1. Baseline: `CARGO_BUILD_JOBS=4 CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 cargo test -p reth-rpc --lib validation --no-default-features`.
@@ -109,6 +161,11 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     binary includes commit `6e836d963` and the resolved-parent worker refinement;
     subsequent source edits only adjust rustdoc and equivalent test initializers.
 
+20. Final optimized node matrix: **3,960 V6 validations passed**. All predicted
+    hit/fallback counts matched; every repeated submission had zero BAL loads
+    and zero EVM provider reads. Results/artifacts updated above; feature remains
+    default-off because there is no consistent latency benefit in these workloads.
+
 ## Design
 
 Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:
@@ -176,7 +233,7 @@ performance node or builder-submission corpus was supplied or configured. Local
 controlled measurements cannot establish production validation performance.
 Production-node acceptance remains open until a suitable node and workload exist.
 
-## Optimized local-node results
+## Initial optimized local-node results (before worker refinement)
 
 30 first submissions and 300 repeats per row. Medians in milliseconds;
 first p95 is in parentheses. Cold means the ETH BAL LRU is disabled; normal
@@ -215,8 +272,8 @@ The binary embeds commit `de9caa3b8` from build metadata generated earlier in th
 build; use the SHA-256 and build options in `flashbots-parent-bal-results.json` to
 identify the measured artifact. Later commits include test/documentation changes
 and sharing the existing validation Arc instead of copying its disallow set.
-Full raw first latencies, loads, counts, sizes, and RSS are in
-`flashbots-parent-bal-first.csv`; repeat distributions are in the results JSON.
+The initial artifacts are retained at Git commit `e5e3cf95c`; the current JSON
+and CSV contain the final matrix above.
 Production performance acceptance remains open.
 
 ## Optimized MDBX layer results
