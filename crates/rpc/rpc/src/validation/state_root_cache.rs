@@ -285,9 +285,9 @@ mod tests {
             .insert(B256::repeat_byte(1), Some(Account { nonce: 3, ..Default::default() }));
         let expected = cache.root(B256::ZERO, state.clone(), ethereum_root).unwrap().0;
         let mut reordered = state.clone();
-        reordered.accounts.clear();
+        let mut original_accounts = std::mem::take(&mut reordered.accounts);
         for key in [B256::repeat_byte(1), B256::ZERO] {
-            reordered.accounts.insert(key, state.accounts.get(&key).cloned().unwrap());
+            reordered.accounts.insert(key, original_accounts.remove(&key).unwrap());
         }
         assert_eq!(
             cache.root(B256::ZERO, reordered, |_| panic!("unexpected calculation")).unwrap(),

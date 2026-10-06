@@ -92,3 +92,8 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
 30. Added retained map-capacity payload telemetry for the memory comparison.
     Clippy requested copied rather than cloned for standard accounts; using owned
     map removal in the test avoids conditional Copy/Clone assumptions entirely.
+
+31. Affected-package clippy passed with warnings denied (31.02 s): RPC, node
+    core, Ethereum node, storage API, and provider, including tests. Retained
+    payload telemetry is an estimate of map key/value capacity; process RSS is
+    measured separately and includes all node/database allocations.
