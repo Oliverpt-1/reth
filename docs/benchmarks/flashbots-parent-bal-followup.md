@@ -29,4 +29,9 @@ producer/follower roles will check whether an apparent win depends on node roles
     Covers exact-hash Arc reuse, reorg eviction, missing decoded BAL, and all prior
     partial-field/code/storage/child-write/state-root cases. Release build underway.
 
+22. Paired Engine API smoke passed on the previous binary: identical blocks were
+    imported and made canonical on a second, non-dev node, then identical V6
+    submissions validated on both. Counts matched. Timings are discarded because
+    release compilation was active; the harness is ready for optimized runs.
+
 No latency improvement is claimed until optimized paired measurements pass.
