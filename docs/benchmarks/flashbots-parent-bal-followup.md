@@ -80,3 +80,8 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
 
 27. Helper import/error-construction fixes compiled; the added API regression
     exposed one missing test-module ConsensusError import. Fixing and rerunning.
+
+28. Targeted nextest: **43 passed**, 0 failed, 524 skipped (16.620 s).
+    Includes full API validation on a root hit rejecting a false claimed root and
+    an unpaid bid; complete-state MPT changes, parent/reorg isolation, concurrency,
+    failed-provider handling, and capacity-based retention limits all pass.

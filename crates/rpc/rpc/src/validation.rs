@@ -995,8 +995,8 @@ pub(crate) struct ValidationMetrics {
 #[cfg(test)]
 mod tests {
     use super::{
-        hash_disallow_list, validate_message_against_payload, AddressSet, ValidationApi,
-        ValidationApiConfig, ValidationApiError,
+        hash_disallow_list, validate_message_against_payload, AddressSet, ConsensusError,
+        ValidationApi, ValidationApiConfig, ValidationApiError,
     };
     use alloy_consensus::{BlockHeader, Header};
     use alloy_primitives::{Address, B256, U256};
