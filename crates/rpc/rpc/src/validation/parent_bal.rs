@@ -626,16 +626,15 @@ mod tests {
     fn benchmark_mdbx_parent_bal() {
         use alloy_eips::NumHash;
         use reth_db_api::{
-            models::StorageEntry,
             tables,
             transaction::{DbTx, DbTxMut},
         };
         use reth_ethereum_primitives::EthPrimitives;
-        use reth_primitives_traits::Account;
+        use reth_primitives_traits::{Account, StorageEntry};
         use reth_provider::test_utils::create_test_provider_factory;
         use reth_revm::database::StateProviderDatabase;
         use reth_rpc_eth_types::{EthStateCache, EthStateCacheConfig};
-        use reth_storage_api::{BalProvider, RawBal, StateProvider, StateProviderFactory};
+        use reth_storage_api::{BalProvider, RawBal, StateProvider};
         use reth_tasks::Runtime;
         use std::{hint::black_box, time::Instant};
 

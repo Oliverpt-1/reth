@@ -24,6 +24,11 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
    independent of the ETH API's block/receipt primitives. Added an ignored MDBX
    benchmark; node rebuild and benchmark compilation are next.
 
+5. Node rebuild succeeded (`--no-default-features`, unoptimized debug profile).
+   The first replay smoke run stopped on an optional-value CLI syntax issue; fixed
+   `--rpc-cache.prewarm-bals=0`. The broader nextest run stopped compiling the new
+   ignored benchmark on a StorageEntry import; corrected its crate path. Re-running.
+
 ## Measurement scope
 
 This workspace has approximately 30 GB available disk and 10 GB RAM. No synced
