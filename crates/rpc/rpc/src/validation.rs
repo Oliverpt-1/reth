@@ -111,7 +111,7 @@ where
     /// Enables lazy parent BAL reads through the node's shared ETH cache. The loader runs on
     /// a blocking execution worker because revm's database interface is synchronous.
     /// Omitting this builder keeps provider-only validation.
-    pub fn with_parent_bal_cache(mut self, cache: EthStateCache<E::Primitives>) -> Self {
+    pub fn with_parent_bal_cache<N: NodePrimitives>(mut self, cache: EthStateCache<N>) -> Self {
         Arc::get_mut(&mut self.inner).expect("configure before cloning").parent_bal_loader = Some(
             Arc::new(move |hash| match futures::executor::block_on(cache.get_bal(hash)) {
                 Ok(bal) => bal,

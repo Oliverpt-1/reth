@@ -19,6 +19,11 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
    calls, identical receipts/rebuilt BAL/bundle state/MPT roots, and parent-hash
    cache isolation across a simulated reorg. Fixed adapter Debug and test imports.
 
+4. Local node build: a custom EthApiBuilder exposed a primitives-type mismatch in
+   the cache builder signature. Generalized it: the BAL cache representation is
+   independent of the ETH API's block/receipt primitives. Added an ignored MDBX
+   benchmark; node rebuild and benchmark compilation are next.
+
 ## Measurement scope
 
 This workspace has approximately 30 GB available disk and 10 GB RAM. No synced

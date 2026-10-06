@@ -205,13 +205,13 @@ mod tests {
         hash: Cell<usize>,
     }
 
-    struct CountingDb {
-        db: CacheDB<EmptyDB>,
+    struct CountingDb<DB = CacheDB<EmptyDB>> {
+        db: DB,
         reads: Reads,
     }
 
-    impl DatabaseRef for CountingDb {
-        type Error = <CacheDB<EmptyDB> as DatabaseRef>::Error;
+    impl<DB: DatabaseRef> DatabaseRef for CountingDb<DB> {
+        type Error = DB::Error;
         fn basic_ref(&self, a: Address) -> Result<Option<AccountInfo>, Self::Error> {
             self.reads.basic.set(self.reads.basic.get() + 1);
             self.db.basic_ref(a)
@@ -278,11 +278,11 @@ mod tests {
         )
     }
 
-    fn adapter<'a>(
-        db: &'a CountingDb,
+    fn adapter<'a, DB: DatabaseRef>(
+        db: &'a CountingDb<DB>,
         bal: &'a LazyParentBal,
         loader: Option<&'a BalLoader>,
-    ) -> ParentBalDb<'a, &'a CountingDb> {
+    ) -> ParentBalDb<'a, &'a CountingDb<DB>> {
         ParentBalDb { db, hash: B256::repeat_byte(1), bal, loader, reads: Default::default() }
     }
 
@@ -618,5 +618,146 @@ mod tests {
             U256::from(42)
         );
         assert_eq!(db.reads.storage.get(), 1); // matching commitment serves BAL
+    }
+    /// Controlled MDBX state-read benchmark. This measures the database/cache layer, not
+    /// end-to-end Flashbots RPC latency or production mainnet validation.
+    #[test]
+    #[ignore = "explicit performance run"]
+    fn benchmark_mdbx_parent_bal() {
+        use alloy_eips::NumHash;
+        use reth_db_api::{
+            models::StorageEntry,
+            tables,
+            transaction::{DbTx, DbTxMut},
+        };
+        use reth_ethereum_primitives::EthPrimitives;
+        use reth_primitives_traits::Account;
+        use reth_provider::test_utils::create_test_provider_factory;
+        use reth_revm::database::StateProviderDatabase;
+        use reth_rpc_eth_types::{EthStateCache, EthStateCacheConfig};
+        use reth_storage_api::{BalProvider, RawBal, StateProvider, StateProviderFactory};
+        use reth_tasks::Runtime;
+        use std::{hint::black_box, time::Instant};
+
+        const ACCOUNTS: u64 = 16;
+        const SLOTS: u64 = 64;
+        const SAMPLES: u64 = 30;
+        let factory = create_test_provider_factory();
+        let tx = factory.provider_rw().unwrap().into_tx();
+        for a in 1..=ACCOUNTS {
+            let address = Address::from_word(B256::from(U256::from(a)));
+            tx.put::<tables::PlainAccountState>(
+                address,
+                Account { nonce: 1, balance: U256::from(100), bytecode_hash: None },
+            )
+            .unwrap();
+            for k in 0..SLOTS * 2 {
+                tx.put::<tables::PlainStorageState>(
+                    address,
+                    StorageEntry { key: B256::from(U256::from(k)), value: U256::from(k + 1) },
+                )
+                .unwrap();
+            }
+        }
+        tx.commit().unwrap();
+        let runtime = Runtime::test();
+        let cache = EthStateCache::<EthPrimitives>::spawn_with(
+            factory.clone(),
+            EthStateCacheConfig::default(),
+            runtime.clone(),
+        );
+        let cache_loader: BalLoader =
+            Arc::new(move |hash| futures::executor::block_on(cache.get_bal(hash)).unwrap());
+        println!("MDBX_BENCH accounts={}, slots_per_account={}, samples={}, build=debug, OS_page_cache=warm", ACCOUNTS, SLOTS, SAMPLES);
+        for overlap in [0, 25, 100] {
+            let mut bal = Bal::default();
+            for a in 1..=ACCOUNTS {
+                let mut account = AccountBal::default();
+                // Partial metadata on purpose: account reads must still hit the provider.
+                account.balance = BalWrites::new(vec![(BlockAccessIndex::new(4), U256::from(100))]);
+                for k in 0..SLOTS {
+                    let key = if k < SLOTS * overlap / 100 { k } else { k + SLOTS };
+                    account.storage.storage.insert(
+                        U256::from(key),
+                        BalWrites::new(vec![(BlockAccessIndex::new(4), U256::from(key + 1))]),
+                    );
+                }
+                bal.accounts.insert(Address::from_word(B256::from(U256::from(a))), account);
+            }
+            let raw: Bytes = alloy_rlp::encode(bal.into_alloy_bal()).into();
+            let mut decode_us = Vec::new();
+            for _ in 0..SAMPLES {
+                let start = Instant::now();
+                let decoded = DecodedBal::from_rlp_bytes(raw.clone())
+                    .unwrap()
+                    .try_map(|bal| Bal::try_from(Vec::from(bal)).map(Arc::new))
+                    .unwrap();
+                black_box(decoded);
+                decode_us.push(start.elapsed().as_secs_f64() * 1e6);
+            }
+            decode_us.sort_by(f64::total_cmp);
+            println!(
+                "BAL_COST overlap={} raw_bytes={} decode_median_us={:.3} decode_p95_us={:.3}",
+                overlap,
+                raw.len(),
+                decode_us[15],
+                decode_us[28]
+            );
+            for enabled in [false, true] {
+                let mut first = Vec::new();
+                let mut repeated = Vec::new();
+                let mut account_reads = 0;
+                let mut slot_reads = 0;
+                for sample in 0..SAMPLES {
+                    let hash = B256::from(U256::from(
+                        10_000 + overlap * 1_000 + u64::from(enabled) * 100 + sample,
+                    ));
+                    factory
+                        .bal_store()
+                        .insert(NumHash::new(sample, hash), RawBal::new(raw.clone()))
+                        .unwrap();
+                    let state = factory.latest().unwrap();
+                    let db = CountingDb {
+                        db: StateProviderDatabase::new((&state).into_evm_state_provider()),
+                        reads: Reads::default(),
+                    };
+                    let lazy = LazyParentBal::default();
+                    let mut reads = CachedReads::default();
+                    for round in 0..2 {
+                        let start = Instant::now();
+                        let mut cached = reads.as_db_mut(ParentBalDb {
+                            db: &db,
+                            hash,
+                            bal: &lazy,
+                            loader: enabled.then_some(&cache_loader),
+                            reads: Default::default(),
+                        });
+                        for a in 1..=ACCOUNTS {
+                            let address = Address::from_word(B256::from(U256::from(a)));
+                            for k in 0..SLOTS {
+                                assert_eq!(
+                                    black_box(cached.storage(address, U256::from(k)).unwrap()),
+                                    U256::from(k + 1)
+                                );
+                            }
+                        }
+                        drop(cached);
+                        let elapsed = start.elapsed().as_secs_f64() * 1e6;
+                        if round == 0 {
+                            first.push(elapsed);
+                        } else {
+                            repeated.push(elapsed);
+                        }
+                    }
+                    account_reads += db.reads.basic.get();
+                    slot_reads += db.reads.storage.get();
+                }
+                first.sort_by(f64::total_cmp);
+                repeated.sort_by(f64::total_cmp);
+                println!("MDBX_RESULT overlap={} enabled={} first_median_us={:.3} first_p95_us={:.3} repeated_median_us={:.3} repeated_p95_us={:.3} provider_accounts_per_parent={} provider_slots_per_parent={}", overlap, enabled, first[15], first[28], repeated[15], repeated[28], account_reads/SAMPLES as usize, slot_reads/SAMPLES as usize);
+            }
+        }
+        // Owned runtime shutdown happens from this synchronous benchmark thread.
+        runtime.shutdown_timeout(std::time::Duration::from_secs(5));
     }
 }
