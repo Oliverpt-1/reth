@@ -96,6 +96,10 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     formatting warnings and two test-fixture initializer warnings. Corrected
     all four and rerunning the same scope with `-D warnings`.
 
+17. Warning-free lint rerun exposed an incorrect fixture-only initializer
+    rewrite: balance belongs to AccountInfoBal, exposed via AccountBal Deref.
+    Corrected the nested initializer; runtime code is unaffected. Rechecking.
+
 ## Design
 
 Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:

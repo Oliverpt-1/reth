@@ -208,7 +208,7 @@ mod tests {
     use revm::{
         database::{CacheDB, EmptyDB, State},
         state::{
-            bal::{AccountBal, BalWrites, BlockAccessIndex},
+            bal::{AccountBal, AccountInfoBal, BalWrites, BlockAccessIndex},
             Account, EvmStorageSlot,
         },
         Database, DatabaseCommit,
@@ -265,10 +265,13 @@ mod tests {
             db.insert_account_storage(ADDRESS, U256::from(slot), U256::from(value)).unwrap();
         }
         let mut account = AccountBal {
-            balance: BalWrites::new(vec![
-                (BlockAccessIndex::new(0), U256::from(80)),
-                (BlockAccessIndex::new(4), U256::from(100)),
-            ]),
+            account_info: AccountInfoBal {
+                balance: BalWrites::new(vec![
+                    (BlockAccessIndex::new(0), U256::from(80)),
+                    (BlockAccessIndex::new(4), U256::from(100)),
+                ]),
+                ..Default::default()
+            },
             ..Default::default()
         };
         account.storage.storage.insert(
@@ -732,7 +735,10 @@ mod tests {
             for a in 1..=ACCOUNTS {
                 // Partial metadata on purpose: account reads must still hit the provider.
                 let mut account = AccountBal {
-                    balance: BalWrites::new(vec![(BlockAccessIndex::new(4), U256::from(100))]),
+                    account_info: AccountInfoBal {
+                        balance: BalWrites::new(vec![(BlockAccessIndex::new(4), U256::from(100))]),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 };
                 for k in 0..SLOTS {
