@@ -1,0 +1,771 @@
+{
+  "binary": "/workspace/reth/target/release/reth",
+  "binary_sha256": "91599411b4d596b69f7baf290d2115142a32145a44ec40fb4567be43703f46f4",
+  "version": "Reth Version: 2.7.0-dev\nCommit SHA: 6d257b5eb081690d79db41eb3c9494710e96c889\nBuild Timestamp: 2026-10-06T21:59:03.946612518Z\nBuild Features:\nBuild Profile: release",
+  "samples": 100,
+  "repeats": 5,
+  "seed": 1729,
+  "reverse_nodes": false,
+  "cpu_quota": "200000 100000",
+  "memory_limit_bytes": "8589934592",
+  "scope": "identical payloads on isolated Amsterdam nodes; seeded randomized paired order",
+  "rows": [
+    {
+      "slots": 64,
+      "overlap": 0,
+      "first_change": {
+        "median_percent": 3.4200759076804808,
+        "ci95_percent": [
+          -9.20517040933202,
+          18.612349284441333
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -3.515163842501303,
+        "ci95_percent": [
+          -7.321510181508439,
+          -0.46322193523785404
+        ]
+      },
+      "off": {
+        "first_median_ms": 2.2361665,
+        "first_p95_ms": 3.387939,
+        "repeat_median_ms": 1.2231445,
+        "repeat_p95_ms": 2.265923,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2577004544.0,
+        "first_stages_us": {
+          "cache_read": 5.901879999999998,
+          "bal_hash": 12.927360000000022,
+          "execution": 644.90522,
+          "recovery": 48.34467999999995,
+          "cache_update": 1.9175000000000006,
+          "provider": 18.14958,
+          "post_execution": 7.704100000000005,
+          "pre_execution": 55.823619999999934,
+          "state_root": 430.54390000000035
+        },
+        "first_stages_median_us": {
+          "cache_read": 4.8925000000000285,
+          "bal_hash": 13.144999999999996,
+          "execution": 601.3914999999995,
+          "recovery": 38.66800000000016,
+          "cache_update": 1.9329999999999965,
+          "provider": 13.485499999999883,
+          "post_execution": 6.840000000000145,
+          "pre_execution": 53.25099999999982,
+          "state_root": 408.15050000000963
+        },
+        "repeat_stages_us": {
+          "cache_read": 3.679430000000003,
+          "bal_hash": 14.335920000000005,
+          "execution": 124.64518199999998,
+          "recovery": 26.52801600000002,
+          "cache_update": 1.859231999999999,
+          "provider": 11.703758000000018,
+          "post_execution": 5.053132000000004,
+          "pre_execution": 31.47763599999995,
+          "state_root": 418.3350059999998
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 2.938500000000026,
+          "bal_hash": 11.410199999999993,
+          "execution": 115.10849999999927,
+          "recovery": 22.685300000000083,
+          "cache_update": 1.786699999999997,
+          "provider": 10.02599999999998,
+          "post_execution": 4.71900000000012,
+          "pre_execution": 28.08529999999976,
+          "state_root": 411.265199999998
+        }
+      },
+      "on": {
+        "first_median_ms": 2.307124,
+        "first_p95_ms": 3.448139,
+        "repeat_median_ms": 1.1985670000000002,
+        "repeat_p95_ms": 2.2217,
+        "bal_load_median_us": 8.742999999999967,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2589622272.0,
+        "first_stages_us": {
+          "cache_read": 7.524959999999994,
+          "bal_hash": 16.27234000000001,
+          "execution": 722.1130699999994,
+          "recovery": 39.89794000000005,
+          "cache_update": 2.06862,
+          "provider": 14.792169999999988,
+          "post_execution": 8.590189999999991,
+          "pre_execution": 51.27608999999999,
+          "state_root": 444.9065699999998
+        },
+        "first_stages_median_us": {
+          "cache_read": 6.409999999999988,
+          "bal_hash": 14.437000000000173,
+          "execution": 661.623,
+          "recovery": 39.24899999999988,
+          "cache_update": 2.047999999999991,
+          "provider": 13.840999999999898,
+          "post_execution": 7.351000000000004,
+          "pre_execution": 51.28199999999971,
+          "state_root": 414.72999999999513
+        },
+        "repeat_stages_us": {
+          "cache_read": 3.1437259999999947,
+          "bal_hash": 14.35848200000001,
+          "execution": 123.0454740000001,
+          "recovery": 23.90021599999999,
+          "cache_update": 1.8772820000000003,
+          "provider": 11.40980600000001,
+          "post_execution": 6.156808000000001,
+          "pre_execution": 27.84357199999999,
+          "state_root": 409.8636979999999
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 2.9054000000000064,
+          "bal_hash": 11.48630000000015,
+          "execution": 116.22940000000082,
+          "recovery": 21.580400000000054,
+          "cache_update": 1.7635,
+          "provider": 10.00510000000003,
+          "post_execution": 4.831300000000013,
+          "pre_execution": 24.84549999999981,
+          "state_root": 399.0577999999981
+        }
+      }
+    },
+    {
+      "slots": 64,
+      "overlap": 25,
+      "first_change": {
+        "median_percent": 0.8568500819409941,
+        "ci95_percent": [
+          -11.324467621723777,
+          12.596005324253248
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -1.787772686797563,
+        "ci95_percent": [
+          -2.856856550148876,
+          0.3564799416327702
+        ]
+      },
+      "off": {
+        "first_median_ms": 2.2709539999999997,
+        "first_p95_ms": 3.087154,
+        "repeat_median_ms": 1.209006,
+        "repeat_p95_ms": 1.995689,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2649747456.0,
+        "first_stages_us": {
+          "cache_read": 5.2021399999999804,
+          "bal_hash": 13.464030000000047,
+          "execution": 642.4085700000002,
+          "recovery": 38.993739999999974,
+          "cache_update": 1.911140000000007,
+          "provider": 15.570019999999923,
+          "post_execution": 8.315799999999998,
+          "pre_execution": 50.1722299999997,
+          "state_root": 504.6443300000003
+        },
+        "first_stages_median_us": {
+          "cache_read": 4.917000000000115,
+          "bal_hash": 13.670500000000086,
+          "execution": 606.0440000000001,
+          "recovery": 38.93349999999941,
+          "cache_update": 1.8779999999999708,
+          "provider": 13.65599999999991,
+          "post_execution": 7.085500000000161,
+          "pre_execution": 51.372500000000656,
+          "state_root": 479.0574999999908
+        },
+        "repeat_stages_us": {
+          "cache_read": 3.9648560000000055,
+          "bal_hash": 13.560689999999969,
+          "execution": 115.1233540000004,
+          "recovery": 24.488929999999986,
+          "cache_update": 1.7461779999999971,
+          "provider": 11.929499999999983,
+          "post_execution": 5.4962960000000285,
+          "pre_execution": 28.054950000000016,
+          "state_root": 472.0985139999999
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 2.8845000000000436,
+          "bal_hash": 12.151300000000191,
+          "execution": 110.98340000000039,
+          "recovery": 22.589899999999815,
+          "cache_update": 1.6945999999999888,
+          "provider": 9.877999999999798,
+          "post_execution": 4.864100000000118,
+          "pre_execution": 26.04739999999932,
+          "state_root": 468.2920999999951
+        }
+      },
+      "on": {
+        "first_median_ms": 2.2211295,
+        "first_p95_ms": 2.839472,
+        "repeat_median_ms": 1.1917814999999998,
+        "repeat_p95_ms": 2.086386,
+        "bal_load_median_us": 8.978500000000043,
+        "provider_slots": 48.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2678284288.0,
+        "first_stages_us": {
+          "cache_read": 6.62750000000001,
+          "bal_hash": 17.778440000000042,
+          "execution": 664.6153599999991,
+          "recovery": 37.29829,
+          "cache_update": 2.050810000000006,
+          "provider": 17.13057999999995,
+          "post_execution": 7.254480000000018,
+          "pre_execution": 46.74547000000005,
+          "state_root": 507.9088799999998
+        },
+        "first_stages_median_us": {
+          "cache_read": 6.409499999999926,
+          "bal_hash": 15.027999999999397,
+          "execution": 636.159499999997,
+          "recovery": 39.57950000000113,
+          "cache_update": 2.078000000000084,
+          "provider": 14.311500000000095,
+          "post_execution": 7.115499999999983,
+          "pre_execution": 49.079000000000484,
+          "state_root": 485.14150000000814
+        },
+        "repeat_stages_us": {
+          "cache_read": 3.1863080000000066,
+          "bal_hash": 13.029499999999986,
+          "execution": 118.28352600000025,
+          "recovery": 23.57661600000001,
+          "cache_update": 1.858173999999996,
+          "provider": 10.981921999999981,
+          "post_execution": 5.292305999999993,
+          "pre_execution": 28.355555999999982,
+          "state_root": 474.80362199999905
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 2.8193000000000144,
+          "bal_hash": 12.20860000000039,
+          "execution": 112.90740000000355,
+          "recovery": 22.392700000000225,
+          "cache_update": 1.7497999999999472,
+          "provider": 10.216400000000007,
+          "post_execution": 4.69010000000011,
+          "pre_execution": 24.679199999999568,
+          "state_root": 462.47949999999594
+        }
+      }
+    },
+    {
+      "slots": 64,
+      "overlap": 100,
+      "first_change": {
+        "median_percent": 8.543403891747355,
+        "ci95_percent": [
+          -7.699237707790441,
+          18.830278171407542
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -0.3775831269295254,
+        "ci95_percent": [
+          -2.524287664654646,
+          0.9053440499292027
+        ]
+      },
+      "off": {
+        "first_median_ms": 2.2106135,
+        "first_p95_ms": 2.814684,
+        "repeat_median_ms": 1.2055525,
+        "repeat_p95_ms": 2.091014,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2665342976.0,
+        "first_stages_us": {
+          "cache_read": 4.731500000000038,
+          "bal_hash": 15.58708999999995,
+          "execution": 658.5287500000006,
+          "recovery": 39.246880000000026,
+          "cache_update": 2.1426099999999946,
+          "provider": 15.24638,
+          "post_execution": 7.114669999999995,
+          "pre_execution": 45.85214999999983,
+          "state_root": 513.5501300000067
+        },
+        "first_stages_median_us": {
+          "cache_read": 4.78700000000002,
+          "bal_hash": 13.625499999999485,
+          "execution": 611.1114999999834,
+          "recovery": 30.10050000000139,
+          "cache_update": 1.652499999999944,
+          "provider": 13.776000000000066,
+          "post_execution": 7.045999999999702,
+          "pre_execution": 49.525000000001654,
+          "state_root": 495.6325000000095
+        },
+        "repeat_stages_us": {
+          "cache_read": 3.4320220000000035,
+          "bal_hash": 13.319004000000003,
+          "execution": 116.13891399999987,
+          "recovery": 23.170389999999983,
+          "cache_update": 2.356852000000003,
+          "provider": 11.257709999999966,
+          "post_execution": 5.238378000000018,
+          "pre_execution": 26.21191800000014,
+          "state_root": 486.9515939999984
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 2.8503999999999508,
+          "bal_hash": 12.38560000000055,
+          "execution": 112.08389999999847,
+          "recovery": 22.16840000000067,
+          "cache_update": 1.7355000000000147,
+          "provider": 10.029999999999415,
+          "post_execution": 5.015599999999912,
+          "pre_execution": 25.285000000000586,
+          "state_root": 468.5014999999959
+        }
+      },
+      "on": {
+        "first_median_ms": 2.2809545,
+        "first_p95_ms": 3.269209,
+        "repeat_median_ms": 1.1808655,
+        "repeat_p95_ms": 2.089471,
+        "bal_load_median_us": 9.644000000000059,
+        "provider_slots": 0.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2702653440.0,
+        "first_stages_us": {
+          "cache_read": 6.552410000000044,
+          "bal_hash": 19.27818000000005,
+          "execution": 687.3319699999975,
+          "recovery": 39.083160000000156,
+          "cache_update": 2.8589900000000092,
+          "provider": 16.73886000000008,
+          "post_execution": 8.24888000000001,
+          "pre_execution": 48.76326,
+          "state_root": 510.3559599999985
+        },
+        "first_stages_median_us": {
+          "cache_read": 6.32900000000023,
+          "bal_hash": 15.918999999999656,
+          "execution": 641.3975000000016,
+          "recovery": 39.73500000000254,
+          "cache_update": 2.152999999999964,
+          "provider": 14.48199999999969,
+          "post_execution": 7.280999999999607,
+          "pre_execution": 50.70100000000022,
+          "state_root": 495.5520000000102
+        },
+        "repeat_stages_us": {
+          "cache_read": 2.883233999999988,
+          "bal_hash": 13.418915999999989,
+          "execution": 114.41736800000035,
+          "recovery": 22.76451600000001,
+          "cache_update": 1.8521859999999988,
+          "provider": 12.057807999999966,
+          "post_execution": 6.492076000000008,
+          "pre_execution": 27.870141999999863,
+          "state_root": 473.784242
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 2.8163999999998923,
+          "bal_hash": 12.432900000000288,
+          "execution": 112.1600999999972,
+          "recovery": 21.765800000000947,
+          "cache_update": 1.7675000000000418,
+          "provider": 9.922699999999686,
+          "post_execution": 4.693100000000092,
+          "pre_execution": 24.601999999999265,
+          "state_root": 465.1214999999986
+        }
+      }
+    },
+    {
+      "slots": 512,
+      "overlap": 0,
+      "first_change": {
+        "median_percent": 3.67657451179898,
+        "ci95_percent": [
+          0.873006874144977,
+          8.733846475811237
+        ]
+      },
+      "repeat_change": {
+        "median_percent": 1.6770814496058783,
+        "ci95_percent": [
+          -0.6968536218392662,
+          3.1382850126721262
+        ]
+      },
+      "off": {
+        "first_median_ms": 4.47936,
+        "first_p95_ms": 5.379423,
+        "repeat_median_ms": 2.753705,
+        "repeat_p95_ms": 3.683103,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2601230336.0,
+        "first_stages_us": {
+          "cache_read": 4.847930000000006,
+          "bal_hash": 60.990850000000115,
+          "execution": 1703.3358400000002,
+          "recovery": 47.69681000000004,
+          "cache_update": 3.37561,
+          "provider": 14.355259999999992,
+          "post_execution": 8.07314999999999,
+          "pre_execution": 55.96568999999998,
+          "state_root": 1619.5311000000004
+        },
+        "first_stages_median_us": {
+          "cache_read": 4.881999999999945,
+          "bal_hash": 57.66199999999999,
+          "execution": 1707.5445000000016,
+          "recovery": 46.23500000000005,
+          "cache_update": 2.4289999999999727,
+          "provider": 13.240000000000192,
+          "post_execution": 7.55700000000005,
+          "pre_execution": 53.60050000000061,
+          "state_root": 1516.5364999999988
+        },
+        "repeat_stages_us": {
+          "cache_read": 6.657577999999999,
+          "bal_hash": 61.68104600000001,
+          "execution": 430.0156139999999,
+          "recovery": 33.78166399999998,
+          "cache_update": 2.8911160000000016,
+          "provider": 12.16084600000001,
+          "post_execution": 5.219625999999991,
+          "pre_execution": 37.03886999999997,
+          "state_root": 1541.8757579999992
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 6.289299999999985,
+          "bal_hash": 57.92720000000022,
+          "execution": 425.3945999999967,
+          "recovery": 32.07630000000009,
+          "cache_update": 2.7701999999999947,
+          "provider": 10.24220000000009,
+          "post_execution": 5.160100000000008,
+          "pre_execution": 34.006200000000035,
+          "state_root": 1493.946800000001
+        }
+      },
+      "on": {
+        "first_median_ms": 4.687714,
+        "first_p95_ms": 5.500235,
+        "repeat_median_ms": 2.7524604999999998,
+        "repeat_p95_ms": 3.57434,
+        "bal_load_median_us": 17.42600000000002,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2608771072.0,
+        "first_stages_us": {
+          "cache_read": 6.831520000000007,
+          "bal_hash": 65.74924999999993,
+          "execution": 1879.1871299999998,
+          "recovery": 45.49829999999997,
+          "cache_update": 2.638379999999992,
+          "provider": 15.936960000000017,
+          "post_execution": 11.73802999999998,
+          "pre_execution": 58.02952,
+          "state_root": 1630.3669100000031
+        },
+        "first_stages_median_us": {
+          "cache_read": 6.560000000000072,
+          "bal_hash": 62.26349999999964,
+          "execution": 1828.7829999999935,
+          "recovery": 46.900499999999276,
+          "cache_update": 2.6639999999999864,
+          "provider": 13.786000000000062,
+          "post_execution": 7.951999999999966,
+          "pre_execution": 60.27050000000046,
+          "state_root": 1541.329499999994
+        },
+        "repeat_stages_us": {
+          "cache_read": 6.810285999999997,
+          "bal_hash": 64.10432399999996,
+          "execution": 448.86552199999966,
+          "recovery": 35.22182,
+          "cache_update": 2.354198,
+          "provider": 11.918420000000005,
+          "post_execution": 5.486885999999993,
+          "pre_execution": 38.71664999999999,
+          "state_root": 1507.9007619999986
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 6.292300000000011,
+          "bal_hash": 60.9648,
+          "execution": 427.75290000000297,
+          "recovery": 31.88789999999985,
+          "cache_update": 2.340699999999992,
+          "provider": 10.442900000000028,
+          "post_execution": 5.08849999999998,
+          "pre_execution": 36.63139999999978,
+          "state_root": 1483.0614000000019
+        }
+      }
+    },
+    {
+      "slots": 512,
+      "overlap": 25,
+      "first_change": {
+        "median_percent": 4.142938614461367,
+        "ci95_percent": [
+          0.0722383674013676,
+          7.446994573614019
+        ]
+      },
+      "repeat_change": {
+        "median_percent": 0.6855539823306365,
+        "ci95_percent": [
+          -1.0049212962246368,
+          3.5863052984269395
+        ]
+      },
+      "off": {
+        "first_median_ms": 4.84293,
+        "first_p95_ms": 6.174341,
+        "repeat_median_ms": 2.9976355000000003,
+        "repeat_p95_ms": 4.360316,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2691192832.0,
+        "first_stages_us": {
+          "cache_read": 6.120779999999947,
+          "bal_hash": 72.96146000000039,
+          "execution": 1901.529440000002,
+          "recovery": 47.50809000000019,
+          "cache_update": 2.6937400000000085,
+          "provider": 17.24842999999995,
+          "post_execution": 9.24774000000002,
+          "pre_execution": 74.96251999999998,
+          "state_root": 1813.656470000009
+        },
+        "first_stages_median_us": {
+          "cache_read": 5.152499999999758,
+          "bal_hash": 62.83500000000067,
+          "execution": 1829.1630000000225,
+          "recovery": 48.4784999999991,
+          "cache_update": 2.49400000000002,
+          "provider": 13.921000000000072,
+          "post_execution": 8.587999999999912,
+          "pre_execution": 58.108000000001155,
+          "state_root": 1625.2060000000456
+        },
+        "repeat_stages_us": {
+          "cache_read": 7.746005999999983,
+          "bal_hash": 67.75721600000017,
+          "execution": 467.4508200000015,
+          "recovery": 37.03815400000009,
+          "cache_update": 3.3872679999999895,
+          "provider": 12.071284000000027,
+          "post_execution": 6.268446000000015,
+          "pre_execution": 39.329168,
+          "state_root": 1697.9595040000024
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 6.788299999999861,
+          "bal_hash": 63.80320000000175,
+          "execution": 457.00350000000833,
+          "recovery": 34.83829999999938,
+          "cache_update": 3.0424999999999724,
+          "provider": 10.474699999999878,
+          "post_execution": 5.646500000000033,
+          "pre_execution": 36.6503000000011,
+          "state_root": 1617.6251999999947
+        }
+      },
+      "on": {
+        "first_median_ms": 4.9860635,
+        "first_p95_ms": 6.198372,
+        "repeat_median_ms": 3.0292035,
+        "repeat_p95_ms": 4.419775,
+        "bal_load_median_us": 18.773000000000142,
+        "provider_slots": 384.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2713673728.0,
+        "first_stages_us": {
+          "cache_read": 10.274249999999975,
+          "bal_hash": 76.0083399999998,
+          "execution": 1995.9438400000013,
+          "recovery": 50.215310000000095,
+          "cache_update": 5.111970000000023,
+          "provider": 15.130159999999938,
+          "post_execution": 9.350770000000011,
+          "pre_execution": 65.29778999999975,
+          "state_root": 1719.4870600000033
+        },
+        "first_stages_median_us": {
+          "cache_read": 6.985499999999888,
+          "bal_hash": 66.94100000000438,
+          "execution": 1916.5854999999842,
+          "recovery": 48.53300000000165,
+          "cache_update": 2.7144999999999686,
+          "provider": 14.23199999999944,
+          "post_execution": 8.392999999999768,
+          "pre_execution": 61.10649999999801,
+          "state_root": 1658.0859999999475
+        },
+        "repeat_stages_us": {
+          "cache_read": 7.129357999999988,
+          "bal_hash": 71.32598399999993,
+          "execution": 470.19015399999984,
+          "recovery": 36.98611799999995,
+          "cache_update": 3.2685439999999915,
+          "provider": 12.679263999999993,
+          "post_execution": 5.52900399999999,
+          "pre_execution": 43.61929800000002,
+          "state_root": 1704.7189079999987
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 6.673100000000042,
+          "bal_hash": 66.76979999999872,
+          "execution": 457.85559999999,
+          "recovery": 33.96519999999993,
+          "cache_update": 2.6411999999999747,
+          "provider": 10.951699999999821,
+          "post_execution": 5.131700000000125,
+          "pre_execution": 39.07690000000026,
+          "state_root": 1633.7025999999864
+        }
+      }
+    },
+    {
+      "slots": 512,
+      "overlap": 100,
+      "first_change": {
+        "median_percent": 3.1677031098330852,
+        "ci95_percent": [
+          -0.11900087696033068,
+          7.751119865478902
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -0.25709043148817406,
+        "ci95_percent": [
+          -1.3072337763713637,
+          1.8017610993792528
+        ]
+      },
+      "off": {
+        "first_median_ms": 4.838534,
+        "first_p95_ms": 7.024625,
+        "repeat_median_ms": 3.112254,
+        "repeat_p95_ms": 4.813473,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2720305152.0,
+        "first_stages_us": {
+          "cache_read": 12.966320000000112,
+          "bal_hash": 74.89654999999983,
+          "execution": 1981.8434699999943,
+          "recovery": 51.712700000000474,
+          "cache_update": 2.847810000000009,
+          "provider": 15.394779999999813,
+          "post_execution": 9.739960000000012,
+          "pre_execution": 57.96163,
+          "state_root": 1923.6017999999922
+        },
+        "first_stages_median_us": {
+          "cache_read": 4.943000000000309,
+          "bal_hash": 64.20149999999958,
+          "execution": 1845.9150000000868,
+          "recovery": 48.36300000000266,
+          "cache_update": 2.5884999999997196,
+          "provider": 13.530999999998919,
+          "post_execution": 8.577999999999538,
+          "pre_execution": 57.95750000000058,
+          "state_root": 1650.6499999999758
+        },
+        "repeat_stages_us": {
+          "cache_read": 8.267406000000044,
+          "bal_hash": 71.62633800000023,
+          "execution": 493.3065580000049,
+          "recovery": 39.84364399999998,
+          "cache_update": 3.443283999999998,
+          "provider": 13.582766000000058,
+          "post_execution": 6.223468000000003,
+          "pre_execution": 40.62738400000011,
+          "state_root": 1738.162480000001
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 6.932500000000029,
+          "bal_hash": 66.62760000000074,
+          "execution": 474.6289000000181,
+          "recovery": 35.27709999999948,
+          "cache_update": 2.989599999999974,
+          "provider": 11.499099999999832,
+          "post_execution": 6.106099999999767,
+          "pre_execution": 37.960099999997944,
+          "state_root": 1649.1495999999995
+        }
+      },
+      "on": {
+        "first_median_ms": 5.020884,
+        "first_p95_ms": 6.978896,
+        "repeat_median_ms": 3.1309234999999997,
+        "repeat_p95_ms": 4.447252,
+        "bal_load_median_us": 20.16999999999991,
+        "provider_slots": 0.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2763804672.0,
+        "first_stages_us": {
+          "cache_read": 10.406949999999874,
+          "bal_hash": 77.77725999999971,
+          "execution": 1991.251370000001,
+          "recovery": 83.57801999999991,
+          "cache_update": 2.899550000000002,
+          "provider": 15.21580000000005,
+          "post_execution": 9.276849999999975,
+          "pre_execution": 66.78941,
+          "state_root": 1733.170730000031
+        },
+        "first_stages_median_us": {
+          "cache_read": 7.506999999999479,
+          "bal_hash": 68.2580000000016,
+          "execution": 1922.1590000000342,
+          "recovery": 49.45500000000033,
+          "cache_update": 2.83900000000014,
+          "provider": 14.837000000000184,
+          "post_execution": 8.592999999999448,
+          "pre_execution": 63.16999999999781,
+          "state_root": 1631.9515000000617
+        },
+        "repeat_stages_us": {
+          "cache_read": 8.178000000000019,
+          "bal_hash": 72.4024939999999,
+          "execution": 503.1659159999984,
+          "recovery": 36.961695999999975,
+          "cache_update": 3.944830000000012,
+          "provider": 13.427674000000007,
+          "post_execution": 6.297671999999973,
+          "pre_execution": 44.38044400000006,
+          "state_root": 1750.4394299999926
+        },
+        "repeat_stages_median_us": {
+          "cache_read": 7.078800000000219,
+          "bal_hash": 69.48279999999669,
+          "execution": 478.2553000000189,
+          "recovery": 34.98769999999985,
+          "cache_update": 3.313000000000014,
+          "provider": 11.300099999999453,
+          "post_execution": 5.40999999999979,
+          "pre_execution": 39.67799999999855,
+          "state_root": 1682.160499999963
+        }
+      }
+    }
+  ],
+  "timed_validations": 7200
+}
