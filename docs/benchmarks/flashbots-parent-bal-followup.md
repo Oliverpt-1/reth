@@ -114,3 +114,11 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     matching wrong-root/unpaid rejections. Proof-reconstructed noncanonical child
     roots and rebuilt BALs validate on both nodes. Every changed final balance
     misses the root cache; trie traversal continues, with no stale root reuse.
+
+35. Full primary root-cache run passed: **7,200 timed valid V6 submissions**
+    and **2,400 invalid submissions rejected identically** on both nodes. Six
+    64/512-slot × 0/25/100% overlap cases, 100 parents each, five distinct valid
+    extraData payloads per parent. Repeated paired medians improve 31.6–36.1%
+    (64 slots) and 43.6–45.3% (512); every 95% interval excludes zero. First
+    request intervals include zero in all cases. Root hits remove trie traversal.
+    Primary artifacts committed; reversed roles/seed replication is next.
