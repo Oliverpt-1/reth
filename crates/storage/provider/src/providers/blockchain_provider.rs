@@ -3579,7 +3579,7 @@ mod tests {
         ));
         assert!(provider.cached_revm_bal(hash).is_none());
         provider.canonical_in_memory_state.update_chain(NewCanonicalChain::Commit {
-            new: vec![parent.clone().with_bal(Some(bal.clone()))],
+            new: vec![parent.with_bal(Some(bal.clone()))],
         });
         assert!(Arc::ptr_eq(&provider.cached_revm_bal(hash).unwrap(), &bal));
         assert!(provider.cached_revm_bal(B256::repeat_byte(0xff)).is_none());

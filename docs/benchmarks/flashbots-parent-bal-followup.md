@@ -34,4 +34,8 @@ producer/follower roles will check whether an apparent win depends on node roles
     submissions validated on both. Counts matched. Timings are discarded because
     release compilation was active; the harness is ready for optimized runs.
 
+23. Five affected-package clippy checks found one redundant clone in the new
+    provider test. Removed it and rerunning with warnings denied. Runtime is
+    unaffected; full-workspace JIT lint still requires unavailable LLVM 22.
+
 No latency improvement is claimed until optimized paired measurements pass.
