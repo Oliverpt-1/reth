@@ -22,6 +22,11 @@ pub(super) type BalLoader = Arc<dyn Fn(B256) -> Option<SharedBal> + Send + Sync>
 pub(super) struct LazyParentBal(OnceLock<Option<SharedBal>>);
 
 impl LazyParentBal {
+    /// Once resolved (including absence), subsequent reads cannot wait on the ETH service.
+    pub(super) fn is_resolved(&self) -> bool {
+        self.0.get().is_some()
+    }
+
     fn get(&self, hash: B256, loader: Option<&BalLoader>) -> Option<&Bal> {
         let loader = loader?;
         self.0
@@ -345,7 +350,8 @@ mod tests {
         let mut cached = cache.as_db_mut(adapter(&db, &unloaded, Some(&must_not_load)));
         assert_eq!(cached.storage(ADDRESS, U256::from(1)).unwrap(), U256::from(42));
         assert_eq!(cached.basic(ADDRESS).unwrap().unwrap().balance, U256::from(100));
-        assert!(unloaded.0.get().is_none());
+        assert!(!unloaded.is_resolved());
+        assert!(lazy.is_resolved());
     }
 
     #[test]

@@ -268,7 +268,7 @@ where
         let execution_block = block.clone();
         let validation_inner = self.inner.clone();
 
-        let use_bal = loader.is_some();
+        let needs_bal_worker = loader.is_some() && !parent_bal.is_resolved();
         let execute = move || -> Result<_, ValidationApiError> {
             let parent_db = ParentBalDb {
                 db: StateProviderDatabase::new((&state_provider).into_evm_state_provider()),
@@ -304,18 +304,18 @@ where
             drop(state);
             Ok((state_provider, request_cache, parent_bal, output, block_access_list_hash))
         };
-        // Preserve the existing provider-only execution path. Only BAL-enabled executions
-        // need an independent blocking worker to wait on the async ETH cache service.
-        let (state_provider, request_cache, parent_bal, output, block_access_list_hash) = if use_bal
-        {
-            self.task_spawner
-                .handle()
-                .spawn_blocking(execute)
-                .await
-                .map_err(ProviderError::other)??
-        } else {
-            execute()?
-        };
+        // Only unresolved BAL views can wait on the async ETH cache service. Resolved views
+        // (including absence) and provider-only execution use the existing worker directly.
+        let (state_provider, request_cache, parent_bal, output, block_access_list_hash) =
+            if needs_bal_worker {
+                self.task_spawner
+                    .handle()
+                    .spawn_blocking(execute)
+                    .await
+                    .map_err(ProviderError::other)??
+            } else {
+                execute()?
+            };
 
         // update the cached reads
         self.update_cached_reads(parent_header_hash, request_cache, parent_bal).await;
