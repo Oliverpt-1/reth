@@ -87,6 +87,11 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     and all prior root/state comparisons. Rebuilding the node for a second timed
     RPC matrix; retrying nightly workspace lint with `m4` available.
 
+15. Full nightly all-feature workspace clippy retry passed the GMP prerequisite
+    but stopped in `llvm-sys 221.1.0`: no suitable LLVM 22 installation or
+    `LLVM_SYS_221_PREFIX`. This is the unrelated JIT dependency. Full-workspace
+    lint remains unverified; checking affected packages without default features.
+
 ## Design
 
 Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:
@@ -159,7 +164,10 @@ Production-node acceptance remains open until a suitable node and workload exist
 first p95 is in parentheses. Cold means the ETH BAL LRU is disabled; normal
 uses its default capacity with prewarming disabled in both cases. The local
 node creates the parent itself, so normal-cache results are mostly cache hits.
-These are sequential runs, not randomized paired production trials.
+These are sequential runs, not randomized paired production trials. Both modes
+use the instrumented adapter; off is the provider-only toggle in this branch,
+not an unmodified upstream binary. Parent execution warms state and the raw BAL
+store; disabling the decoded BAL LRU does not model cold disk reads.
 
 | BAL cache | Slot overlap | First off → on (p95) | Repeat off → on | Provider slots off → on | BAL load on | RSS off → on (MiB) |
 |---|---:|---|---|---|---:|---|
