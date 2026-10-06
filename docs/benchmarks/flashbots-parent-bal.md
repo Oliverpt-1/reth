@@ -60,6 +60,12 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
    to 500K. Compare full receipts/BAL/bundles/roots across five parent-state cases.
    Avoid cloning the configured disallow set for each worker; share its API Arc.
 
+10. Extended parent BAL suite: **13 passed**, 0 failed (2.174 s, nextest).
+    Five full Ethereum execution comparisons passed: partial/code writes,
+    unavailable BAL, cleared storage, complete account fields, and deletion. Each
+    compares receipts, rebuilt child BAL, full bundle state, and a real MPT root.
+    All eight partial account field combinations and fallback errors passed too.
+
 ## Measurement scope
 
 This workspace has approximately 30 GB available disk and 10 GB RAM. No synced
