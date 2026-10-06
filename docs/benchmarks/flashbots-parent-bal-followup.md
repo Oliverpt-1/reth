@@ -145,3 +145,12 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     state run shows a reliable speedup. Four full runs total **19,200 timed valid
     submissions** and **6,400 matching invalid rejections**. Matching-final-state
     improvement is replicated; production hit rate/replay remain unverified.
+
+39. Final formatting, Python syntax, diff checks and independent artifact
+    consistency checks passed. CSV timing ratios reproduce the summary's paired
+    medians for all **1,600 parent pairs / 19,200 timed validations**. Root hits,
+    misses, provider counts, zero trie traversal on hits, distinct sibling hashes
+    and changed-state roots match asserted totals. Final report includes first/
+    repeat/p95 latencies, confidence intervals, both node roles, miss controls,
+    memory measurements and production/full-feature limitations. No default
+    behavior is enabled and no production speedup is claimed.
