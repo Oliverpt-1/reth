@@ -137,3 +137,11 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     **1.64%**, 95% interval **+0.79% to +2.84%**. At 64 slots the interval includes
     zero. This is the measured miss penalty; no changed-state speedup is claimed.
     Reversed-role changed-fee replication is next.
+
+38. Reversed changed-fee run passed: **2,400 timed valid sibling submissions**
+    and **800 matching invalid rejections**. All repeated root lookups miss.
+    Repeated 512-slot paired change is -0.09%, 95% interval -1.36% to +1.41%;
+    the primary +1.64% penalty does not reproduce consistently. Neither changed-
+    state run shows a reliable speedup. Four full runs total **19,200 timed valid
+    submissions** and **6,400 matching invalid rejections**. Matching-final-state
+    improvement is replicated; production hit rate/replay remain unverified.
