@@ -85,3 +85,6 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     Includes full API validation on a root hit rejecting a false claimed root and
     an unpaid bid; complete-state MPT changes, parent/reorg isolation, concurrency,
     failed-provider handling, and capacity-based retention limits all pass.
+
+29. Scoped warnings-denied clippy found one clone-on-copy in the map-order test.
+    Correcting it in a way that also supports non-Copy account-extension builds.
