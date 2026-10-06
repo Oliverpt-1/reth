@@ -129,3 +129,11 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     exclude zero. First-request intervals again include zero. The improvement
     survives node-role reversal. Changed-fee timing is next; its setup now primes
     the same account-proof paths on both nodes before timing.
+
+37. Changed-fee primary timing passed: **2,400 timed valid sibling submissions**
+    and **800 matching invalid rejections**. Repeated final states are all unique
+    and every root-cache lookup misses; both nodes validate the independently
+    reconstructed roots/BALs. At 512 slots the repeated paired median regresses
+    **1.64%**, 95% interval **+0.79% to +2.84%**. At 64 slots the interval includes
+    zero. This is the measured miss penalty; no changed-state speedup is claimed.
+    Reversed-role changed-fee replication is next.
