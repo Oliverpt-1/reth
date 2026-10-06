@@ -66,9 +66,73 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     compares receipts, rebuilt child BAL, full bundle state, and a real MPT root.
     All eight partial account field combinations and fallback errors passed too.
 
+11. Optimized node build succeeded (23m 54s; Rust 1.99.0, no default features,
+    LTO off, 16 codegen units, debug info off). Full nightly all-feature workspace
+    clippy stopped in GMP configuration because `m4` is missing. No lint result
+    claimed; resolving prerequisites separately from timed measurements.
+
+## Design
+
+Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:
+child mutable revm State → per-parent CachedReads → read-only parent BAL adapter
+→ state provider at the exact parent hash. The adapter uses the final write of
+individual fields/slots (including post-execution), rather than indexed reads.
+Read-only slots and omitted fields retain provider fallback. Account existence
+comes from the provider unless every standard field is available and nonempty;
+account-ext builds always load provider metadata. Changed code is supplied inline.
+Code accessed only by hash falls back to the provider instead of scanning the BAL.
+
+A shared OnceLock memoizes one BAL load or absence for the current parent and is
+reused with its read cache. It invokes the existing ETH cache only on a read miss,
+skips pre-Amsterdam parents, and verifies the cached BAL commitment against the
+parent header. Parent switches/reorgs use fresh read/BAL views. A successful BAL
+load pins one shared decoded Arc alongside the current-parent read cache; in-flight
+requests can retain earlier parents until they finish. This pin can outlive ETH
+LRU eviction, including when that LRU is disabled. No decoded BAL is copied.
+
+The ETH cache is asynchronous, so BAL-enabled execution uses a blocking worker;
+provider-only/pre-Amsterdam execution keeps its original worker path. Read metrics
+are aggregated locally and published once per execution, avoiding metric-handle
+lookup on every EVM read. `builder.validation.parent_bal.load_seconds` measures
+shared-cache retrieval, including fetch/decode on a miss. Read counters cover EVM
+provider calls; state-root/proof provider work is outside these counters.
+
+## Reproduce
+
+```sh
+cargo build --release -p reth --bin reth --no-default-features
+python -m venv /tmp/reth-bal-bench-env
+/tmp/reth-bal-bench-env/bin/pip install eth-account==0.14.0
+/tmp/reth-bal-bench-env/bin/python scripts/bench_flashbots_parent_bal.py \
+  --binary target/release/reth --output-dir /tmp/reth-bal-bench-results \
+  --samples 30 --repeats 10 --slots 64
+```
+
+The runner starts four sequential isolated Amsterdam dev nodes (BAL on/off,
+ETH BAL LRU disabled/normal). Each sample mines a parent and a child with controlled
+0/25/100% storage overlap, validates V6 once and then ten times against the same
+parent, and records latency, EVM provider counts, BAL load cost, parent serialized
+size, and process RSS. Every validation checks consensus outputs and the expected
+state root. Assertions require the predicted slot-hit/fallback counts and zero
+BAL loads/provider reads on repeats. Serialized parent BAL size is inspected after
+the timed intervals. Full raw measurements and node logs are retained.
+
+Run the additional 16-account × 64-slot MDBX layer benchmark separately:
+
+```sh
+cargo test --release -p reth-rpc --lib benchmark_mdbx_parent_bal -- \
+  --ignored --nocapture --test-threads=1
+```
+
+Do not run builds, tests, or other workloads concurrently with timed benchmarks.
+For a representative node, use a funded test infrastructure account or provision
+hardware separately, then replay real builder submissions over BAL-enabled blocks.
+The same toggle and metrics allow a paired comparison; never use the runner's
+public development key on another network.
+
 ## Measurement scope
 
-This workspace has approximately 30 GB available disk and 10 GB RAM. No synced
+This workspace has a 2-core CPU quota, an 8 GiB memory limit, and a 32 GB filesystem. No synced
 performance node or builder-submission corpus was supplied or configured. Local
 controlled measurements cannot establish production validation performance.
 Production-node acceptance remains open until a suitable node and workload exist.
