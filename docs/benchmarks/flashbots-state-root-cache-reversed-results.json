@@ -1,0 +1,1169 @@
+{
+  "binary": "/workspace/reth/target/release/reth",
+  "binary_sha256": "db21aa05bb4b2ee6e627edc4115154a551c3a652ea22164712dbc101095fa652",
+  "version": "Reth Version: 2.7.0\nCommit SHA: ff96d05b024c8a18e4dae4aca48b6cff1b38e199\nBuild Timestamp: 2026-10-06T22:30:10.708810584Z\nBuild Features:\nBuild Profile: release",
+  "vary_extra_data": true,
+  "vary_gas_price": false,
+  "optimization": "root",
+  "samples": 100,
+  "repeats": 5,
+  "seed": 2026,
+  "reverse_nodes": true,
+  "cpu_quota": "200000 100000",
+  "memory_limit_bytes": "8589934592",
+  "scope": "identical payloads on isolated Amsterdam nodes; seeded randomized paired order",
+  "rows": [
+    {
+      "slots": 64,
+      "overlap": 0,
+      "first_change": {
+        "median_percent": -14.745379915902399,
+        "ci95_percent": [
+          -18.347893229734737,
+          9.063657216662317
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -29.46639004478132,
+        "ci95_percent": [
+          -32.04527895596031,
+          -26.100570638423648
+        ]
+      },
+      "off": {
+        "first_median_ms": 2.110677,
+        "first_p95_ms": 2.48676,
+        "repeat_median_ms": 1.074225,
+        "repeat_p95_ms": 1.958193,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2589057024.0,
+        "root_cache_retained_payload_bytes": 0.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 7.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 60.14,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 5.58,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 17.76,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 65.87,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 65.87,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 112.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 112.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 11.93
+        },
+        "first_stages_us": {
+          "pre_execution": 53.47702000000006,
+          "provider": 15.864760000000045,
+          "cache_update": 2.341130000000004,
+          "execution": 603.3421300000001,
+          "state_root": 404.01354999999916,
+          "recovery": 44.8043700000002,
+          "cache_read": 6.683200000000003,
+          "post_execution": 7.645559999999984,
+          "bal_hash": 14.779369999999982
+        },
+        "first_stages_median_us": {
+          "pre_execution": 53.325499999999636,
+          "provider": 14.231500000000135,
+          "cache_update": 1.9880000000000764,
+          "execution": 579.5385000000042,
+          "state_root": 392.2415000000012,
+          "recovery": 40.20600000000097,
+          "cache_read": 6.7000000000001085,
+          "post_execution": 6.515000000000041,
+          "bal_hash": 14.687000000000207
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 7.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 60.14,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 5.58,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 17.76,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 65.87,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 65.87,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 112.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 112.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 11.93
+        },
+        "repeat_stages_us": {
+          "pre_execution": 26.219528000000007,
+          "provider": 10.90310800000002,
+          "cache_update": 1.5389940000000009,
+          "execution": 112.10907599999977,
+          "state_root": 380.953354,
+          "recovery": 24.887823999999963,
+          "cache_read": 2.750944,
+          "post_execution": 4.767034000000003,
+          "bal_hash": 11.757924000000001
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 25.29439999999967,
+          "provider": 9.734599999999945,
+          "cache_update": 1.5104000000000162,
+          "execution": 108.88410000000002,
+          "state_root": 381.3630000000012,
+          "recovery": 21.136900000000033,
+          "cache_read": 2.676199999999962,
+          "post_execution": 4.337500000000045,
+          "bal_hash": 11.27179999999995
+        }
+      },
+      "on": {
+        "first_median_ms": 1.9735909999999999,
+        "first_p95_ms": 2.502463,
+        "repeat_median_ms": 0.747547,
+        "repeat_p95_ms": 1.393737,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2577635328.0,
+        "root_cache_retained_payload_bytes": 7720.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 7.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 60.14,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 5.58,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 17.76,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 65.87,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 65.87,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 112.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 112.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 11.93
+        },
+        "first_stages_us": {
+          "pre_execution": 50.353619999999964,
+          "provider": 16.968729999999976,
+          "cache_update": 5.5140499999999975,
+          "execution": 599.4262500000001,
+          "state_root": 400.28382999999997,
+          "recovery": 33.113049999999916,
+          "cache_read": 5.781529999999993,
+          "post_execution": 6.295069999999993,
+          "bal_hash": 15.025849999999984
+        },
+        "first_stages_median_us": {
+          "pre_execution": 49.74050000000024,
+          "provider": 12.999499999999955,
+          "cache_update": 1.7479999999999838,
+          "execution": 587.4709999999991,
+          "state_root": 386.2874999999988,
+          "recovery": 28.182500000000466,
+          "cache_read": 4.912500000000099,
+          "post_execution": 6.17449999999997,
+          "bal_hash": 11.827999999999752
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 0.0
+        },
+        "repeat_stages_us": {
+          "pre_execution": 27.580184000000024,
+          "provider": 11.255734000000004,
+          "cache_update": 1.5733700000000015,
+          "execution": 112.53255399999992,
+          "state_root": 35.33471999999996,
+          "recovery": 22.678313999999975,
+          "cache_read": 2.5265059999999955,
+          "post_execution": 5.526884,
+          "bal_hash": 12.669135999999998
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 25.19099999999993,
+          "provider": 9.573399999999923,
+          "cache_update": 1.4744000000000128,
+          "execution": 103.97579999999878,
+          "state_root": 31.312300000000192,
+          "recovery": 20.883399999999952,
+          "cache_read": 2.4497999999999998,
+          "post_execution": 4.590000000000003,
+          "bal_hash": 10.763399999999903
+        }
+      }
+    },
+    {
+      "slots": 64,
+      "overlap": 25,
+      "first_change": {
+        "median_percent": 1.6834872300415895,
+        "ci95_percent": [
+          -13.694929946858142,
+          14.513397152114527
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -37.11853549150925,
+        "ci95_percent": [
+          -38.83579657782293,
+          -35.48518374072972
+        ]
+      },
+      "off": {
+        "first_median_ms": 2.3120580000000004,
+        "first_p95_ms": 2.947525,
+        "repeat_median_ms": 1.2380575,
+        "repeat_p95_ms": 2.138785,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2677422080.0,
+        "root_cache_retained_payload_bytes": 0.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 6.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 145.95,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 28.48,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 78.47,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 103.9,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 103.9,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 116.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 116.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.03
+        },
+        "first_stages_us": {
+          "pre_execution": 50.17949000000025,
+          "provider": 16.94854999999995,
+          "cache_update": 2.0548999999999893,
+          "execution": 645.2540100000012,
+          "state_root": 517.5087099999981,
+          "recovery": 38.66652999999973,
+          "cache_read": 7.404160000000011,
+          "post_execution": 7.339630000000002,
+          "bal_hash": 15.606240000000104
+        },
+        "first_stages_median_us": {
+          "pre_execution": 52.92500000000228,
+          "provider": 14.351499999998989,
+          "cache_update": 1.9880000000000764,
+          "execution": 611.0115000000083,
+          "state_root": 487.85049999999774,
+          "recovery": 39.900500000000434,
+          "cache_read": 6.794999999999979,
+          "post_execution": 7.021000000000284,
+          "bal_hash": 15.092999999999009
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 6.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 145.95,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 28.48,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 78.47,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 103.9,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 103.9,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 116.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 116.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.03
+        },
+        "repeat_stages_us": {
+          "pre_execution": 27.682250000000053,
+          "provider": 12.947978000000028,
+          "cache_update": 1.7799180000000048,
+          "execution": 121.59771399999941,
+          "state_root": 490.7915320000006,
+          "recovery": 23.023423999999924,
+          "cache_read": 3.2001780000000015,
+          "post_execution": 5.040687999999996,
+          "bal_hash": 13.009260000000005
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 25.8830000000005,
+          "provider": 10.544899999999359,
+          "cache_update": 1.6341999999999701,
+          "execution": 118.98529999999074,
+          "state_root": 477.0384000000072,
+          "recovery": 22.337800000000325,
+          "cache_read": 2.9224000000000006,
+          "post_execution": 4.648899999999938,
+          "bal_hash": 12.396600000000314
+        }
+      },
+      "on": {
+        "first_median_ms": 2.245386,
+        "first_p95_ms": 2.75107,
+        "repeat_median_ms": 0.792375,
+        "repeat_p95_ms": 1.497829,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2652825600.0,
+        "root_cache_retained_payload_bytes": 7720.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 6.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 145.95,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 28.48,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 78.47,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 103.9,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 103.9,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 116.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 116.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.03
+        },
+        "first_stages_us": {
+          "pre_execution": 50.27787000000013,
+          "provider": 14.815089999999833,
+          "cache_update": 1.9266799999999893,
+          "execution": 616.6170999999989,
+          "state_root": 525.5031500000005,
+          "recovery": 41.513849999999934,
+          "cache_read": 6.148390000000016,
+          "post_execution": 7.365949999999909,
+          "bal_hash": 17.064430000000073
+        },
+        "first_stages_median_us": {
+          "pre_execution": 52.32399999999943,
+          "provider": 13.700499999999908,
+          "cache_update": 1.9879999999998597,
+          "execution": 601.0759999999921,
+          "state_root": 492.1725000000057,
+          "recovery": 39.77949999999994,
+          "cache_read": 6.1395000000000115,
+          "post_execution": 6.655000000000376,
+          "bal_hash": 14.161500000000117
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 0.0
+        },
+        "repeat_stages_us": {
+          "pre_execution": 30.496213999999966,
+          "provider": 13.118023999999968,
+          "cache_update": 2.1757900000000006,
+          "execution": 118.4575600000003,
+          "state_root": 39.590366000000095,
+          "recovery": 22.714398000000088,
+          "cache_read": 3.150913999999989,
+          "post_execution": 5.522554000000017,
+          "bal_hash": 13.585732000000007
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 26.63620000000026,
+          "provider": 10.30249999999979,
+          "cache_update": 1.6233000000000049,
+          "execution": 113.08450000000192,
+          "state_root": 32.40680000000107,
+          "recovery": 22.10730000000091,
+          "cache_read": 2.6479000000000257,
+          "post_execution": 5.056600000000103,
+          "bal_hash": 12.279599999999792
+        }
+      }
+    },
+    {
+      "slots": 64,
+      "overlap": 100,
+      "first_change": {
+        "median_percent": 3.2413294795568683,
+        "ci95_percent": [
+          -18.425494841728472,
+          14.138649207891763
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -35.414322351303134,
+        "ci95_percent": [
+          -37.258968083282895,
+          -33.053594900989495
+        ]
+      },
+      "off": {
+        "first_median_ms": 2.236093,
+        "first_p95_ms": 2.895526,
+        "repeat_median_ms": 1.22298,
+        "repeat_p95_ms": 2.155831,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2695211008.0,
+        "root_cache_retained_payload_bytes": 0.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 7.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 160.24,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 41.93,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 142.97,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 82.77,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 82.77,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 113.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 113.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.1
+        },
+        "first_stages_us": {
+          "pre_execution": 47.933630000000015,
+          "provider": 18.740610000000103,
+          "cache_update": 2.8005799999999925,
+          "execution": 706.0226399999997,
+          "state_root": 510.1905699999954,
+          "recovery": 36.18164999999965,
+          "cache_read": 7.375299999999966,
+          "post_execution": 7.417399999999916,
+          "bal_hash": 16.44936999999999
+        },
+        "first_stages_median_us": {
+          "pre_execution": 52.91950000000517,
+          "provider": 15.107999999999787,
+          "cache_update": 2.0080000000003917,
+          "execution": 606.5050000000072,
+          "state_root": 496.7240000000039,
+          "recovery": 34.54200000000199,
+          "cache_read": 6.860499999999762,
+          "post_execution": 6.87050000000057,
+          "bal_hash": 15.489000000000473
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 7.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 160.24,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 41.93,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 142.97,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 82.77,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 82.77,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 113.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 113.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.1
+        },
+        "repeat_stages_us": {
+          "pre_execution": 26.532983999999924,
+          "provider": 12.106571999999982,
+          "cache_update": 1.7345219999999928,
+          "execution": 124.76137399999942,
+          "state_root": 493.70903199999924,
+          "recovery": 26.212824000000175,
+          "cache_read": 3.537105999999991,
+          "post_execution": 5.329660000000016,
+          "bal_hash": 14.533894000000096
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 25.447400000000453,
+          "provider": 10.411100000000047,
+          "cache_update": 1.6325999999999234,
+          "execution": 118.60579999999898,
+          "state_root": 480.38840000000914,
+          "recovery": 21.86290000000049,
+          "cache_read": 2.97550000000011,
+          "post_execution": 4.769299999999969,
+          "bal_hash": 12.697199999999256
+        }
+      },
+      "on": {
+        "first_median_ms": 2.2236785,
+        "first_p95_ms": 3.153636,
+        "repeat_median_ms": 0.7846985,
+        "repeat_p95_ms": 1.429075,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 64.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2667147264.0,
+        "root_cache_retained_payload_bytes": 7720.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 7.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 160.24,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 41.93,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 142.97,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 82.77,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 84.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 16.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 82.77,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 113.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 1.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 113.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.1
+        },
+        "first_stages_us": {
+          "pre_execution": 47.61014000000001,
+          "provider": 27.535020000000223,
+          "cache_update": 2.2515100000000112,
+          "execution": 696.0294799999989,
+          "state_root": 513.8321099999998,
+          "recovery": 38.68333000000036,
+          "cache_read": 6.06017000000003,
+          "post_execution": 7.374150000000052,
+          "bal_hash": 13.741460000000032
+        },
+        "first_stages_median_us": {
+          "pre_execution": 51.242499999999694,
+          "provider": 13.255000000000212,
+          "cache_update": 1.8830000000000497,
+          "execution": 566.3890000000005,
+          "state_root": 499.3885000000031,
+          "recovery": 39.409500000000406,
+          "cache_read": 5.788999999999968,
+          "post_execution": 6.835499999999911,
+          "bal_hash": 14.091500000000533
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 0.0
+        },
+        "repeat_stages_us": {
+          "pre_execution": 26.92725199999997,
+          "provider": 15.368339999999995,
+          "cache_update": 1.5992840000000004,
+          "execution": 112.18073600000078,
+          "state_root": 36.03340600000049,
+          "recovery": 22.810957999999964,
+          "cache_read": 2.7463860000000104,
+          "post_execution": 5.68686999999999,
+          "bal_hash": 13.149752000000014
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 25.324299999998637,
+          "provider": 9.844900000000738,
+          "cache_update": 1.5601999999998677,
+          "execution": 110.1533999999904,
+          "state_root": 33.70679999999959,
+          "recovery": 22.358599999999782,
+          "cache_read": 2.588900000000116,
+          "post_execution": 4.875200000000087,
+          "bal_hash": 12.375599999999917
+        }
+      }
+    },
+    {
+      "slots": 512,
+      "overlap": 0,
+      "first_change": {
+        "median_percent": -0.9647847626927936,
+        "ci95_percent": [
+          -6.699621075829809,
+          3.1128783166126883
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -45.22303892920711,
+        "ci95_percent": [
+          -45.811634522209374,
+          -44.180297309496034
+        ]
+      },
+      "off": {
+        "first_median_ms": 4.717945,
+        "first_p95_ms": 5.706095,
+        "repeat_median_ms": 2.8147115,
+        "repeat_p95_ms": 4.136805,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2611693568.0,
+        "root_cache_retained_payload_bytes": 0.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 35.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 60.16,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 4.08,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 18.92,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 64.22,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 532.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 91.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 64.22,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 936.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 39.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 936.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 11.54
+        },
+        "first_stages_us": {
+          "pre_execution": 66.59654000000006,
+          "provider": 16.51492000000003,
+          "cache_update": 2.9483999999999937,
+          "execution": 1816.0304899999999,
+          "state_root": 1590.1222900000014,
+          "recovery": 50.228869999999844,
+          "cache_read": 8.41952000000001,
+          "post_execution": 9.155349999999995,
+          "bal_hash": 69.37087999999994
+        },
+        "first_stages_median_us": {
+          "pre_execution": 62.3089999999991,
+          "provider": 14.431000000000079,
+          "cache_update": 2.8895000000000133,
+          "execution": 1811.377000000003,
+          "state_root": 1531.0889999999995,
+          "recovery": 49.97499999999985,
+          "cache_read": 7.616499999999957,
+          "post_execution": 8.167499999999958,
+          "bal_hash": 63.19499999999853
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 35.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 60.16,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 4.08,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 18.92,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 64.22,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 532.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 91.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 64.22,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 936.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 39.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 936.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 11.54
+        },
+        "repeat_stages_us": {
+          "pre_execution": 37.82500600000001,
+          "provider": 11.65184200000001,
+          "cache_update": 2.6820400000000024,
+          "execution": 480.14727999999894,
+          "state_root": 1628.8722280000015,
+          "recovery": 35.92496599999998,
+          "cache_read": 7.051128000000015,
+          "post_execution": 5.913246000000004,
+          "bal_hash": 69.60849800000008
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 35.97739999999993,
+          "provider": 10.569900000000061,
+          "cache_update": 2.487800000000002,
+          "execution": 449.92799999999943,
+          "state_root": 1517.7024000000315,
+          "recovery": 32.42690000000003,
+          "cache_read": 6.677100000000106,
+          "post_execution": 5.739899999999986,
+          "bal_hash": 64.82640000000026
+        }
+      },
+      "on": {
+        "first_median_ms": 4.626352,
+        "first_p95_ms": 5.81551,
+        "repeat_median_ms": 1.555886,
+        "repeat_p95_ms": 2.330895,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2602702848.0,
+        "root_cache_retained_payload_bytes": 57896.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 35.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 60.16,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 4.08,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 18.92,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 64.22,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 532.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 91.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 64.22,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 936.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 39.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 936.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 11.54
+        },
+        "first_stages_us": {
+          "pre_execution": 58.27144999999988,
+          "provider": 14.256699999999974,
+          "cache_update": 3.896830000000005,
+          "execution": 1825.0639299999996,
+          "state_root": 1613.62685,
+          "recovery": 45.46583000000017,
+          "cache_read": 5.176799999999985,
+          "post_execution": 7.964470000000003,
+          "bal_hash": 65.45649999999989
+        },
+        "first_stages_median_us": {
+          "pre_execution": 56.53999999999989,
+          "provider": 13.756000000000185,
+          "cache_update": 2.779000000000009,
+          "execution": 1836.108499999989,
+          "state_root": 1525.345500000011,
+          "recovery": 46.820500000000536,
+          "cache_read": 5.287499999999824,
+          "post_execution": 7.47149999999995,
+          "bal_hash": 58.26749999999873
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 0.0
+        },
+        "repeat_stages_us": {
+          "pre_execution": 38.03919399999997,
+          "provider": 12.172169999999984,
+          "cache_update": 3.2006140000000003,
+          "execution": 458.15765400000055,
+          "state_root": 265.48228199999966,
+          "recovery": 34.41168999999996,
+          "cache_read": 6.746963999999998,
+          "post_execution": 5.8757999999999955,
+          "bal_hash": 67.31900399999994
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 36.258899999999386,
+          "provider": 10.698300000000039,
+          "cache_update": 2.4795000000000145,
+          "execution": 437.5580000000005,
+          "state_root": 257.2139999999994,
+          "recovery": 32.397799999999904,
+          "cache_read": 6.142300000000056,
+          "post_execution": 5.4161000000000055,
+          "bal_hash": 61.125900000000286
+        }
+      }
+    },
+    {
+      "slots": 512,
+      "overlap": 25,
+      "first_change": {
+        "median_percent": -1.5737615158496607,
+        "ci95_percent": [
+          -6.809498874323627,
+          4.0984947042513875
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -46.414499196867354,
+        "ci95_percent": [
+          -47.22490960312481,
+          -45.002915771674054
+        ]
+      },
+      "off": {
+        "first_median_ms": 4.953369,
+        "first_p95_ms": 6.070694,
+        "repeat_median_ms": 2.9233685,
+        "repeat_p95_ms": 4.210814,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2721730560.0,
+        "root_cache_retained_payload_bytes": 0.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 44.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 145.32,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 28.99,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 78.31,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 103.55,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 528.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 92.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 103.55,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 917.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 43.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 917.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.13
+        },
+        "first_stages_us": {
+          "pre_execution": 64.40308999999957,
+          "provider": 17.802250000000104,
+          "cache_update": 2.9996099999999615,
+          "execution": 1922.6894700000018,
+          "state_root": 1660.1697800000093,
+          "recovery": 49.70647999999987,
+          "cache_read": 10.166199999999968,
+          "post_execution": 9.645830000000032,
+          "bal_hash": 73.32666999999994
+        },
+        "first_stages_median_us": {
+          "pre_execution": 62.90000000000115,
+          "provider": 14.852500000000699,
+          "cache_update": 3.069499999999812,
+          "execution": 1904.9925000000358,
+          "state_root": 1611.0640000001063,
+          "recovery": 51.11199999999899,
+          "cache_read": 7.75699999999973,
+          "post_execution": 8.272499999999877,
+          "bal_hash": 69.22449999999594
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 44.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 145.32,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 28.99,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 78.31,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 103.55,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 528.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 92.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 103.55,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 917.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 43.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 917.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.13
+        },
+        "repeat_stages_us": {
+          "pre_execution": 41.02109400000019,
+          "provider": 13.354653999999952,
+          "cache_update": 4.005459999999992,
+          "execution": 485.01587800000243,
+          "state_root": 1643.607578000005,
+          "recovery": 39.11478799999997,
+          "cache_read": 7.785763999999989,
+          "post_execution": 6.612302000000002,
+          "bal_hash": 79.59590599999991
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 37.77679999999936,
+          "provider": 11.335100000000113,
+          "cache_update": 3.0886000000000804,
+          "execution": 470.1447999999608,
+          "state_root": 1590.2783000000254,
+          "recovery": 34.29279999999993,
+          "cache_read": 7.173800000000002,
+          "post_execution": 5.7448000000001604,
+          "bal_hash": 66.81379999999987
+        }
+      },
+      "on": {
+        "first_median_ms": 4.885552499999999,
+        "first_p95_ms": 6.148471,
+        "repeat_median_ms": 1.5944945000000001,
+        "repeat_p95_ms": 2.375982,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2719551488.0,
+        "root_cache_retained_payload_bytes": 57896.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 44.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 145.32,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 28.99,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 78.31,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 103.55,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 528.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 92.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 103.55,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 917.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 43.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 917.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 17.13
+        },
+        "first_stages_us": {
+          "pre_execution": 58.94519000000001,
+          "provider": 15.036680000000135,
+          "cache_update": 3.2220899999999735,
+          "execution": 1948.340989999996,
+          "state_root": 1662.8071199999995,
+          "recovery": 49.445800000000006,
+          "cache_read": 7.132810000000031,
+          "post_execution": 8.262670000000004,
+          "bal_hash": 79.55620999999996
+        },
+        "first_stages_median_us": {
+          "pre_execution": 60.02500000000174,
+          "provider": 13.955999999999865,
+          "cache_update": 2.6890000000001635,
+          "execution": 1890.1049999999752,
+          "state_root": 1593.4025000000074,
+          "recovery": 49.19899999999977,
+          "cache_read": 5.3580000000004455,
+          "post_execution": 7.781500000000277,
+          "bal_hash": 66.56049999999996
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 0.0
+        },
+        "repeat_stages_us": {
+          "pre_execution": 44.52851000000016,
+          "provider": 12.165117999999993,
+          "cache_update": 2.894317999999993,
+          "execution": 489.8462040000029,
+          "state_root": 259.6337520000017,
+          "recovery": 35.62306800000005,
+          "cache_read": 7.554354000000024,
+          "post_execution": 5.587138,
+          "bal_hash": 74.8217600000001
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 36.457000000000846,
+          "provider": 10.751200000000404,
+          "cache_update": 2.611799999999989,
+          "execution": 467.1263999999952,
+          "state_root": 248.15710000000158,
+          "recovery": 33.02589999999995,
+          "cache_read": 6.763100000000029,
+          "post_execution": 5.186800000000092,
+          "bal_hash": 67.4466999999998
+        }
+      }
+    },
+    {
+      "slots": 512,
+      "overlap": 100,
+      "first_change": {
+        "median_percent": -0.5855380650403768,
+        "ci95_percent": [
+          -6.003016396481053,
+          1.7668089770337194
+        ]
+      },
+      "repeat_change": {
+        "median_percent": -47.624044848601656,
+        "ci95_percent": [
+          -48.17273695758269,
+          -46.388133524612975
+        ]
+      },
+      "off": {
+        "first_median_ms": 5.10949,
+        "first_p95_ms": 6.474378,
+        "repeat_median_ms": 3.0558829999999997,
+        "repeat_p95_ms": 4.22063,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2767028224.0,
+        "root_cache_retained_payload_bytes": 0.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 39.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 174.88,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 48.35,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 137.07,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 106.39,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 523.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 88.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 106.39,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 915.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 36.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 915.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 18.76
+        },
+        "first_stages_us": {
+          "pre_execution": 82.58660999999931,
+          "provider": 18.387049999999924,
+          "cache_update": 3.34474000000003,
+          "execution": 2014.8313300000043,
+          "state_root": 1755.962370000006,
+          "recovery": 54.38841000000028,
+          "cache_read": 8.479420000000008,
+          "post_execution": 9.208120000000104,
+          "bal_hash": 79.11016000000035
+        },
+        "first_stages_median_us": {
+          "pre_execution": 63.17050000000102,
+          "provider": 14.641999999998738,
+          "cache_update": 3.0444999999999602,
+          "execution": 1947.2710000000282,
+          "state_root": 1661.4600000000034,
+          "recovery": 50.25549999999879,
+          "cache_read": 7.72650000000017,
+          "post_execution": 8.282000000000082,
+          "bal_hash": 71.93899999999309
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 39.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 174.88,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 48.35,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 137.07,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 106.39,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 523.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 88.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 106.39,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 915.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 36.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 915.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 18.76
+        },
+        "repeat_stages_us": {
+          "pre_execution": 40.27397600000005,
+          "provider": 13.326653999999992,
+          "cache_update": 3.239442000000002,
+          "execution": 503.91287799999463,
+          "state_root": 1682.2795420000034,
+          "recovery": 34.92903200000011,
+          "cache_read": 8.025008000000032,
+          "post_execution": 6.6959200000000045,
+          "bal_hash": 74.46476199999955
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 37.25640000000058,
+          "provider": 11.26099999999991,
+          "cache_update": 2.915199999999757,
+          "execution": 484.1981000000217,
+          "state_root": 1651.4252999999535,
+          "recovery": 33.4613999999997,
+          "cache_read": 6.8763000000001195,
+          "post_execution": 5.881899999999988,
+          "bal_hash": 68.83999999999779
+        }
+      },
+      "on": {
+        "first_median_ms": 4.9871995,
+        "first_p95_ms": 6.493451,
+        "repeat_median_ms": 1.6177795000000001,
+        "repeat_p95_ms": 2.383704,
+        "bal_load_median_us": 0.0,
+        "provider_slots": 512.0,
+        "provider_accounts": 9.0,
+        "rss_median_bytes": 2776975360.0,
+        "root_cache_retained_payload_bytes": 57896.0,
+        "first_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 39.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 174.88,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 48.35,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 137.07,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 106.39,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 523.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 88.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 106.39,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 915.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 36.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 915.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 18.76
+        },
+        "first_stages_us": {
+          "pre_execution": 67.32455000000026,
+          "provider": 17.438000000000038,
+          "cache_update": 2.9758600000000333,
+          "execution": 1985.6021500000054,
+          "state_root": 1767.4874100000004,
+          "recovery": 57.42517000000044,
+          "cache_read": 7.3599199999999785,
+          "post_execution": 7.924140000000034,
+          "bal_hash": 74.04481000000047
+        },
+        "first_stages_median_us": {
+          "pre_execution": 61.35300000000011,
+          "provider": 14.33600000000021,
+          "cache_update": 2.939999999999887,
+          "execution": 1950.5510000000781,
+          "state_root": 1680.6745000000344,
+          "recovery": 50.31600000000164,
+          "cache_read": 5.343000000000535,
+          "post_execution": 7.831999999999284,
+          "bal_hash": 66.60049999999973
+        },
+        "repeat_trie_counters": {
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_branch_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"state\"}": 0.0,
+          "reth_trie_walker_out_of_order_subnode{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"state\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_returned_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_same_seeked_total{type=\"storage\"}": 0.0,
+          "reth_trie_node_iter_leaf_nodes_advanced_total{type=\"storage\"}": 0.0,
+          "reth_trie_walker_branch_nodes_seeked_total{type=\"state\"}": 0.0
+        },
+        "repeat_stages_us": {
+          "pre_execution": 39.41170999999985,
+          "provider": 12.461695999999987,
+          "cache_update": 3.170816000000007,
+          "execution": 476.8980280000035,
+          "state_root": 262.38492600000086,
+          "recovery": 35.8954179999999,
+          "cache_read": 7.974629999999962,
+          "post_execution": 6.021426000000011,
+          "bal_hash": 72.2284679999999
+        },
+        "repeat_stages_median_us": {
+          "pre_execution": 36.74449999999801,
+          "provider": 10.910300000000277,
+          "cache_update": 2.749199999999962,
+          "execution": 471.793400000009,
+          "state_root": 257.61739999999867,
+          "recovery": 33.400100000000734,
+          "cache_read": 6.685899999999898,
+          "post_execution": 5.417000000000096,
+          "bal_hash": 67.04419999999656
+        }
+      }
+    }
+  ]
+}

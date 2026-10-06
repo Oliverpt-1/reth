@@ -336,6 +336,11 @@ def main():
                                             for repeat in range(args.repeats)])
                     else:
                         repeat_requests = [request]*args.repeats
+                    if args.vary_gas_price:
+                        # Root reconstruction queried producer account proofs; warm the same
+                        # follower proof paths before timing so node roles have equal setup.
+                        for address in [base.DEV_ACCOUNT.address, request['execution_payload']['fee_recipient']]:
+                            base.rpc(follower['port'], 'eth_getProof', [address, [], child['hash']])
                     await_idle(nodes)
                     pair = {'slots': slots, 'overlap': overlap, 'sample': sample,
                             'parent_hash': child['parentHash'], 'block_hash': child['hash'],

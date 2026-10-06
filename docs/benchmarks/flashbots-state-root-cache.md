@@ -23,7 +23,7 @@ the computed result on every request. Different child changes or reorged parent
 hashes miss; provider failures are not retained. Equal final changes can reuse a
 root even if the payload's other fields differ, after those fields are checked.
 
-The cache retains one entry, with at most 8,192 aggregate map buckets (capacity,
+The cache retains one entry, with at most 8,192 entries of aggregate map capacity (capacity,
 not length), plus at most 256 KiB account-extension payload when enabled.
 Oversized inputs bypass cloning/retention. Locking only snapshots or replaces an
 Arc; full equality and root computation run outside the lock. Concurrent misses

@@ -122,3 +122,10 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     (64 slots) and 43.6–45.3% (512); every 95% interval excludes zero. First
     request intervals include zero in all cases. Root hits remove trie traversal.
     Primary artifacts committed; reversed roles/seed replication is next.
+
+36. Reversed producer/follower and seed replication passed: **7,200 timed valid
+    V6 submissions** and **2,400 matching invalid rejections**. Repeated paired
+    medians improve 29.5–37.1% (64 slots) and 45.2–47.6% (512); all 95% intervals
+    exclude zero. First-request intervals again include zero. The improvement
+    survives node-role reversal. Changed-fee timing is next; its setup now primes
+    the same account-proof paths on both nodes before timing.
