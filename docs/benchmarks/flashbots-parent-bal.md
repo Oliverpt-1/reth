@@ -77,6 +77,11 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     build/test job ran during these timings. Results and raw first-submission
     measurements are committed alongside this report.
 
+13. Optimized isolated MDBX benchmark: **1 passed**. 16 accounts × 64 slots,
+    30 samples per overlap/mode, real shared ETH BAL service and MDBX provider.
+    Read savings verified; results below. Moved test imports into their module
+    scope to follow repository style.
+
 ## Design
 
 Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:
@@ -182,3 +187,22 @@ and sharing the existing validation Arc instead of copying its disallow set.
 Full raw first latencies, loads, counts, sizes, and RSS are in
 `flashbots-parent-bal-first.csv`; repeat distributions are in the results JSON.
 Production performance acceptance remains open.
+
+## Optimized MDBX layer results
+
+Warm OS page cache, 16 accounts × 64 slots, 30 samples per mode. First views fetch
+and decode from the provider through the ETH service. No concurrent build/test
+workloads; release profile as above. Times are medians in microseconds.
+
+| Overlap | First off → on | Repeated off → on | Provider slots off → on | Decode only | Serialized bytes |
+|---:|---|---|---|---:|---:|
+| 0% | 301.505 → 655.118 | 42.394 → 42.664 | 1024 → 1024 | 93.361 | 6707 |
+| 25% | 316.617 → 614.367 | 42.504 → 42.634 | 1024 → 768 | 93.071 | 6707 |
+| 100% | 306.312 → 398.120 | 42.354 → 42.715 | 1024 → 0 | 93.381 | 6691 |
+
+Account reads remain 16 in both modes. The 100% overlap still regresses first-view
+latency by 30%; fetching/decoding a cold BAL costs more than these warm MDBX reads.
+Decode includes RLP decode and conversion into revm BAL data. The cold shared-cache
+benchmark includes additional service/channel/provider cost. Repeated cached reads
+are approximately equal at this layer. This is a database-layer experiment, not
+full RPC validation. Full stdout is in `flashbots-parent-bal-mdbx.txt`.

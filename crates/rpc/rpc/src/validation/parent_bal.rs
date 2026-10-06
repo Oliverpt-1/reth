@@ -184,8 +184,27 @@ pub(super) fn committed_loader(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_primitives::{map::HashMap, Bytes};
-    use reth_revm::cached::CachedReads;
+    use alloy_consensus::{Header, SignableTransaction, TxLegacy};
+    use alloy_eips::NumHash;
+    use alloy_primitives::{map::HashMap, Bytes, Signature, TxKind};
+    use reth_chainspec::{ChainSpecBuilder, MAINNET};
+    use reth_db_api::{
+        tables,
+        transaction::{DbTx, DbTxMut},
+    };
+    use reth_ethereum_primitives::{Block, BlockBody, EthPrimitives, TransactionSigned};
+    use reth_evm::{execute::Executor, ConfigureEvm};
+    use reth_evm_ethereum::EthEvmConfig;
+    use reth_primitives_traits::{Account as RethAccount, RecoveredBlock, StorageEntry};
+    use reth_provider::test_utils::create_test_provider_factory;
+    use reth_revm::{cached::CachedReads, database::StateProviderDatabase};
+    use reth_rpc_eth_types::{EthStateCache, EthStateCacheConfig};
+    use reth_storage_api::{BalProvider, RawBal, StateProvider};
+    use reth_tasks::Runtime;
+    use reth_trie_common::{
+        root::{state_root_unhashed, storage_root_unhashed},
+        TrieAccount,
+    };
     use revm::{
         database::{CacheDB, EmptyDB, State},
         state::{
@@ -196,6 +215,7 @@ mod tests {
     };
     use std::{
         cell::Cell,
+        hint::black_box,
         sync::atomic::{AtomicUsize, Ordering},
     };
 
@@ -473,18 +493,6 @@ mod tests {
     }
     #[test]
     fn ethereum_execution_receipts_bal_and_state_roots_match() {
-        use alloy_consensus::{Header, SignableTransaction, TxLegacy};
-        use alloy_primitives::{Signature, TxKind};
-        use reth_chainspec::{ChainSpecBuilder, MAINNET};
-        use reth_ethereum_primitives::{Block, BlockBody, TransactionSigned};
-        use reth_evm::{execute::Executor, ConfigureEvm};
-        use reth_evm_ethereum::EthEvmConfig;
-        use reth_primitives_traits::RecoveredBlock;
-        use reth_trie_common::{
-            root::{state_root_unhashed, storage_root_unhashed},
-            TrieAccount,
-        };
-
         let code = Bytecode::new_raw(Bytes::from_static(&[
             0x60, 0x01, 0x54, 0x50, // SLOAD(1), POP
             0x60, 0x58, 0x60, 0x01, 0x55, 0x00, // SSTORE(1,88), STOP
@@ -687,20 +695,6 @@ mod tests {
     #[test]
     #[ignore = "explicit performance run"]
     fn benchmark_mdbx_parent_bal() {
-        use alloy_eips::NumHash;
-        use reth_db_api::{
-            tables,
-            transaction::{DbTx, DbTxMut},
-        };
-        use reth_ethereum_primitives::EthPrimitives;
-        use reth_primitives_traits::{Account, StorageEntry};
-        use reth_provider::test_utils::create_test_provider_factory;
-        use reth_revm::database::StateProviderDatabase;
-        use reth_rpc_eth_types::{EthStateCache, EthStateCacheConfig};
-        use reth_storage_api::{BalProvider, RawBal, StateProvider};
-        use reth_tasks::Runtime;
-        use std::{hint::black_box, time::Instant};
-
         const ACCOUNTS: u64 = 16;
         const SLOTS: u64 = 64;
         const SAMPLES: u64 = 30;
@@ -710,7 +704,7 @@ mod tests {
             let address = Address::from_word(B256::from(U256::from(a)));
             tx.put::<tables::PlainAccountState>(
                 address,
-                Account { nonce: 1, balance: U256::from(100), bytecode_hash: None },
+                RethAccount { nonce: 1, balance: U256::from(100), bytecode_hash: None },
             )
             .unwrap();
             for k in 0..SLOTS * 2 {

@@ -1,0 +1,11 @@
+test validation::parent_bal::tests::benchmark_mdbx_parent_bal ... MDBX_BENCH accounts=16, slots_per_account=64, samples=30, build=release, OS_page_cache=warm
+BAL_COST overlap=0 raw_bytes=6707 decode_median_us=93.361 decode_p95_us=141.223
+MDBX_RESULT overlap=0 enabled=false first_median_us=301.505 first_p95_us=368.285 repeated_median_us=42.394 repeated_p95_us=55.984 provider_accounts_per_parent=16 provider_slots_per_parent=1024
+MDBX_RESULT overlap=0 enabled=true first_median_us=655.118 first_p95_us=840.077 repeated_median_us=42.664 repeated_p95_us=118.219 provider_accounts_per_parent=16 provider_slots_per_parent=1024
+BAL_COST overlap=25 raw_bytes=6707 decode_median_us=93.071 decode_p95_us=117.067
+MDBX_RESULT overlap=25 enabled=false first_median_us=316.617 first_p95_us=507.075 repeated_median_us=42.504 repeated_p95_us=46.300 provider_accounts_per_parent=16 provider_slots_per_parent=1024
+MDBX_RESULT overlap=25 enabled=true first_median_us=614.367 first_p95_us=843.772 repeated_median_us=42.634 repeated_p95_us=45.568 provider_accounts_per_parent=16 provider_slots_per_parent=768
+BAL_COST overlap=100 raw_bytes=6691 decode_median_us=93.381 decode_p95_us=134.082
+MDBX_RESULT overlap=100 enabled=false first_median_us=306.312 first_p95_us=342.226 repeated_median_us=42.354 repeated_p95_us=65.218 provider_accounts_per_parent=16 provider_slots_per_parent=1024
+MDBX_RESULT overlap=100 enabled=true first_median_us=398.120 first_p95_us=550.620 repeated_median_us=42.715 repeated_p95_us=64.657 provider_accounts_per_parent=16 provider_slots_per_parent=0
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 139 filtered out; finished in 0.15s
