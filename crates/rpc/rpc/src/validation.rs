@@ -30,7 +30,7 @@ use reth_evm::{execute::Executor, ConfigureEvm, SenderRecoveryCache};
 use reth_execution_types::BlockExecutionOutput;
 use reth_metrics::{
     metrics,
-    metrics::{gauge, Gauge, Histogram},
+    metrics::{gauge, Counter, Gauge, Histogram},
     Metrics,
 };
 use reth_node_api::{NewPayloadError, PayloadTypes};
@@ -54,6 +54,7 @@ use tracing::warn;
 
 mod blob_cache;
 mod parent_bal;
+mod state_root_cache;
 
 /// The type that implements the `validation` rpc namespace trait
 #[derive(Clone, Debug, derive_more::Deref)]
@@ -94,6 +95,7 @@ where
             cached_state: Default::default(),
             parent_bal_loader: None,
             parent_bal_loader_waits: false,
+            state_root_cache: None,
             validated_blobs: Default::default(),
             task_spawner,
             sender_recovery_cache,
@@ -137,6 +139,14 @@ where
         let provider = inner.provider.clone();
         inner.parent_bal_loader_waits = false;
         inner.parent_bal_loader = Some(Arc::new(move |hash| provider.cached_revm_bal(hash)));
+        self
+    }
+
+    /// Reuses a bounded root result for the exact parent and complete hashed execution changes.
+    /// Every submission still executes and compares the returned root with its claimed root.
+    pub fn with_state_root_cache(mut self) -> Self {
+        let inner = Arc::get_mut(&mut self.inner).expect("configure before cloning");
+        inner.state_root_cache = Some(Default::default());
         self
     }
 
@@ -368,7 +378,18 @@ where
 
         let stage_start = Instant::now();
         let hashed_state = state_provider.hashed_post_state(&output.state)?;
-        let state_root = state_provider.state_root(hashed_state)?;
+        let state_root = if let Some(cache) = &self.state_root_cache {
+            let (root, hit) = cache
+                .root(parent_header_hash, hashed_state, |state| state_provider.state_root(state))?;
+            if hit {
+                self.metrics.state_root_cache_hits.increment(1);
+            } else {
+                self.metrics.state_root_cache_misses.increment(1);
+            }
+            root
+        } else {
+            state_provider.state_root(hashed_state)?
+        };
         self.metrics.stage_state_root_seconds.record(stage_start.elapsed().as_secs_f64());
 
         if state_root != block.header().state_root() {
@@ -781,6 +802,8 @@ pub struct ValidationApiInner<Provider, E: ConfigureEvm, T: PayloadTypes> {
     parent_bal_loader: Option<BalLoader>,
     /// Whether the configured loader can wait on the asynchronous ETH cache service.
     parent_bal_loader_waits: bool,
+    /// Optional bounded cache of a pure parent + complete state-change root calculation.
+    state_root_cache: Option<state_root_cache::StateRootCache>,
     /// Recently validated blob, commitment, and cell-proof tuples shared by V2 submissions.
     validated_blobs: BlobValidationCache,
     /// Task spawner for blocking operations
@@ -963,6 +986,10 @@ pub(crate) struct ValidationMetrics {
     stage_post_execution_seconds: Histogram,
     /// Hashing the state changes and computing the child state root.
     stage_state_root_seconds: Histogram,
+    /// Exact parent and complete execution-state matches that reuse a computed root.
+    state_root_cache_hits: Counter,
+    /// Root calculations whose inputs were absent or too large to retain.
+    state_root_cache_misses: Counter,
 }
 
 #[cfg(test)]
@@ -1258,6 +1285,45 @@ mod tests {
             .validate_message_against_block(block, message, registered_gas_limit, None)
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn state_root_cache_still_rejects_wrong_root_and_unpaid_bid() {
+        let (provider, block, mut message) = payment_free_submission();
+        message.value = U256::ZERO;
+        let gas_limit = block.gas_limit();
+        let api = test_validation_api(provider.clone()).with_state_root_cache();
+        api.validate_message_against_block(block.clone(), message.clone(), gas_limit, None)
+            .await
+            .unwrap();
+
+        // The queued sentinel would make a second provider calculation fail root validation.
+        // Leaving it untouched proves the complete validation path actually reused its result.
+        provider.state_roots.lock().push(B256::repeat_byte(0x77));
+        api.validate_message_against_block(block.clone(), message.clone(), gas_limit, None)
+            .await
+            .unwrap();
+        assert_eq!(*provider.state_roots.lock(), vec![B256::repeat_byte(0x77)]);
+
+        let mut bad_header = block.header().clone();
+        bad_header.state_root = B256::repeat_byte(0x55);
+        let bad_block =
+            SealedBlock::seal_slow(Block { header: bad_header, body: Default::default() })
+                .try_recover()
+                .unwrap();
+        let mut bad_message = message.clone();
+        bad_message.block_hash = bad_block.hash();
+        let err = api
+            .validate_message_against_block(bad_block, bad_message, gas_limit, None)
+            .await
+            .unwrap_err();
+        assert!(matches!(err, ValidationApiError::Consensus(ConsensusError::BodyStateRootDiff(_))));
+
+        message.value = U256::from(1);
+        let err =
+            api.validate_message_against_block(block, message, gas_limit, None).await.unwrap_err();
+        assert!(matches!(err, ValidationApiError::ProposerPayment));
+        assert_eq!(*provider.state_roots.lock(), vec![B256::repeat_byte(0x77)]);
     }
 
     /// A zero-value bid promises the proposer nothing, so there is nothing to verify. The

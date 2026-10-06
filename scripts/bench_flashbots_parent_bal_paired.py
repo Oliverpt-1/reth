@@ -29,7 +29,7 @@ def metrics(port):
         lines = response.read().decode().splitlines()
     values = {}
     for line in lines:
-        match = re.match(r'((?:reth_)?builder_validation_(?:parent_bal_|stage_)\S+)\s+(\S+)', line)
+        match = re.match(r'((?:reth_)?builder_validation_(?:parent_bal_|stage_|state_root_cache_)\S+)\s+(\S+)', line)
         if match and 'quantile=' not in match[1]:
             values[match[1]] = float(match[2])
     return values
@@ -95,7 +95,7 @@ def mirror(producer, follower, block):
     assert imported['hash'] == block['hash'] and imported['stateRoot'] == block['stateRoot']
 
 
-def start_node(binary, directory, port, enabled, producer, slots):
+def start_node(binary, directory, port, enabled, producer, slots, optimization):
     directory.mkdir()
     genesis = directory/'genesis.json'
     genesis.write_text(json.dumps(base.genesis(slots)))
@@ -111,8 +111,10 @@ def start_node(binary, directory, port, enabled, producer, slots):
            '--metrics', f'127.0.0.1:{port+1}', '--rpc-cache.prewarm-bals=0']
     if producer:
         cmd += ['--dev', '--dev.block-max-transactions', '1']
-    if enabled:
+    if enabled and optimization in ['bal', 'combined']:
         cmd += ['--rpc.flashbots-parent-bal']
+    if enabled and optimization in ['root', 'combined']:
+        cmd += ['--rpc.flashbots-state-root-cache']
     log = (directory/'node.log').open('w')
     proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT)
     node = {'process': proc, 'log': log, 'port': port, 'jwt': jwt, 'enabled': enabled}
@@ -145,6 +147,25 @@ def stop_node(node):
     node['log'].close()
 
 
+def await_idle(nodes):
+    """Wait for two idle CPU intervals so import/trie background work is outside timing."""
+    def ticks():
+        result = []
+        for node in nodes:
+            fields = Path(f'/proc/{node["process"].pid}/stat').read_text().rsplit(')', 1)[1].split()
+            result.append(int(fields[11])+int(fields[12]))
+        return result
+    previous, consecutive = ticks(), 0
+    deadline = time.monotonic()+5
+    while consecutive < 2:
+        time.sleep(.05)
+        current = ticks()
+        consecutive = consecutive+1 if current == previous else 0
+        previous = current
+        if time.monotonic() > deadline:
+            raise TimeoutError('nodes did not become idle after block import')
+
+
 def paired_change(pairs, phase, rng):
     # Resample whole parents, not correlated repeat requests, for the confidence interval.
     log_ratios = [math.log(statistics.median(p['on'][phase])/statistics.median(p['off'][phase]))
@@ -164,6 +185,7 @@ def main():
     parser.add_argument('--overlaps', type=int, nargs='+', default=[0, 25, 100])
     parser.add_argument('--port', type=int, default=18545)
     parser.add_argument('--seed', type=int, default=1729)
+    parser.add_argument('--optimization', choices=['bal', 'root', 'combined'], default='bal')
     parser.add_argument('--reverse-nodes', action='store_true', help='optimized node produces the blocks')
     args = parser.parse_args()
     assert args.samples > 0 and args.repeats > 0
@@ -174,7 +196,7 @@ def main():
     results = {'binary': str(args.binary),
                'binary_sha256': hashlib.sha256(args.binary.read_bytes()).hexdigest(),
                'version': subprocess.check_output([str(args.binary), '--version'], text=True).strip(),
-               'samples': args.samples, 'repeats': args.repeats, 'seed': args.seed,
+               'optimization': args.optimization, 'samples': args.samples, 'repeats': args.repeats, 'seed': args.seed,
                'reverse_nodes': args.reverse_nodes, 'cpu_quota': Path('/sys/fs/cgroup/cpu.max').read_text().strip(),
                'memory_limit_bytes': Path('/sys/fs/cgroup/memory.max').read_text().strip(),
                'scope': 'identical payloads on isolated Amsterdam nodes; seeded randomized paired order',
@@ -186,11 +208,16 @@ def main():
         try:
             for enabled in [False, True]:
                 nodes.append(start_node(args.binary, run_dir/str(enabled), args.port+10*int(enabled),
-                                        enabled, enabled == args.reverse_nodes, slots))
+                                        enabled, enabled == args.reverse_nodes, slots, args.optimization))
             producer = nodes[int(args.reverse_nodes)]
             follower = nodes[int(not args.reverse_nodes)]
             for _ in range(4):
-                mirror(producer, follower, base.mine(producer['port'], 0, slots))
+                warm_block = base.mine(producer['port'], 0, slots)
+                mirror(producer, follower, warm_block)
+            await_idle(nodes)
+            warm_request = base.submission(producer['port'], warm_block)
+            for node in nodes:
+                assert base.rpc(node['port'], 'flashbots_validateBuilderSubmissionV6', [warm_request]) is None
             for overlap in args.overlaps:
                 pairs = []
                 for sample in range(args.samples):
@@ -198,6 +225,7 @@ def main():
                     child = base.mine(producer['port'], slots*(100-overlap)//100, slots)
                     mirror(producer, follower, child)
                     request = base.submission(producer['port'], child)
+                    await_idle(nodes)
                     pair = {'slots': slots, 'overlap': overlap, 'sample': sample,
                             'parent_hash': child['parentHash'], 'block_hash': child['hash'],
                             'state_root': child['stateRoot'], 'off': {}, 'on': {}}
@@ -223,12 +251,18 @@ def main():
                         record = pair['on' if i else 'off']
                         first_metrics = delta(after_first[i], before[i])
                         repeat_metrics = delta(after[i], after_first[i])
-                        expected_hits = slots*overlap//100 if i else 0
+                        expected_hits = slots*overlap//100 if i and args.optimization in ['bal', 'combined'] else 0
                         assert count(first_metrics, 'bal_slots') == expected_hits, first_metrics
                         assert count(first_metrics, 'provider_slots') == slots-expected_hits, first_metrics
                         assert all(value == 0 for key, value in repeat_metrics.items()
                                    if 'parent_bal_' in key), repeat_metrics
-                        record.update(first_stages_us=stages(first_metrics), repeat_stages_us=stages(repeat_metrics),
+                        root_cache = i and args.optimization in ['root', 'combined']
+                        root_hits = sum(v for k, v in repeat_metrics.items() if k.endswith('_state_root_cache_hits'))
+                        root_misses = sum(v for k, v in first_metrics.items() if k.endswith('_state_root_cache_misses'))
+                        assert root_hits == (args.repeats if root_cache else 0), repeat_metrics
+                        assert root_misses == int(bool(root_cache)), first_metrics
+                        record.update(root_cache_hits=root_hits, root_cache_misses=root_misses,
+                                      first_stages_us=stages(first_metrics), repeat_stages_us=stages(repeat_metrics),
                                       first_provider_slots=count(first_metrics, 'provider_slots'),
                                       first_provider_accounts=count(first_metrics, 'provider_accounts'),
                                       bal_load_us=1e6*sum(v for k, v in first_metrics.items() if k.endswith('load_seconds_sum')),
@@ -252,6 +286,9 @@ def main():
                         key = phase+'_stages_us'
                         row[name][key] = {stage: statistics.mean(p[name][key].get(stage, 0) for p in pairs)
                                          for stage in set().union(*(p[name][key] for p in pairs))}
+                        row[name][phase+'_stages_median_us'] = {
+                            stage: statistics.median(p[name][key].get(stage, 0) for p in pairs)
+                            for stage in row[name][key]}
                 results['rows'].append(row)
                 (args.output_dir/'results.json').write_text(json.dumps(results, indent=2))
                 print(json.dumps(row), flush=True)

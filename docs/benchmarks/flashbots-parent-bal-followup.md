@@ -73,3 +73,7 @@ consensus outputs, proposer payment, rebuilt BAL, and expected root.
 Artifacts: `flashbots-parent-bal-direct-results.json` and
 `flashbots-parent-bal-direct-pairs.csv`. Cache-only BAL is not proven beneficial.
 
+
+26. Bounded state-root reuse implementation and regressions added. Initial
+    compilation caught test/helper import and error-construction mistakes; no
+    runtime or performance result is claimed. Correcting these before execution.

@@ -692,9 +692,15 @@ pub struct RpcServerArgs {
     )]
     pub rpc_eth_proof_window: u64,
 
-    /// Lazily reuse already decoded parent BALs on Flashbots validation cache misses (experimental).
+    /// Lazily reuse already decoded parent BALs on Flashbots validation cache misses
+    /// (experimental).
     #[arg(long = "rpc.flashbots-parent-bal")]
     pub rpc_flashbots_parent_bal: bool,
+
+    /// Reuse state roots for exact parent and executed-state matches in Flashbots validation
+    /// (experimental).
+    #[arg(long = "rpc.flashbots-state-root-cache")]
+    pub rpc_flashbots_state_root_cache: bool,
 
     /// Maximum number of concurrent getproof requests.
     #[arg(long = "rpc.proof-permits", alias = "rpc-proof-permits", value_name = "COUNT", value_parser = RangedU64ValueParser::<usize>::new().range(1..), default_value_t = DefaultRpcServerArgs::get_global().rpc_proof_permits)]
@@ -995,6 +1001,7 @@ impl Default for RpcServerArgs {
             gas_price_oracle,
             rpc_send_raw_transaction_sync_timeout,
             rpc_flashbots_parent_bal: false,
+            rpc_flashbots_state_root_cache: false,
             testing_skip_invalid_transactions: false,
             testing_gas_limit: None,
             rpc_force_blob_sidecar_upcasting: false,
@@ -1207,6 +1214,23 @@ mod tests {
     }
 
     #[test]
+    fn flashbots_state_root_cache_opt_in() {
+        assert!(
+            !CommandParser::<RpcServerArgs>::parse_from(["reth"])
+                .args
+                .rpc_flashbots_state_root_cache
+        );
+        assert!(
+            CommandParser::<RpcServerArgs>::parse_from([
+                "reth",
+                "--rpc.flashbots-state-root-cache"
+            ])
+            .args
+            .rpc_flashbots_state_root_cache
+        );
+    }
+
+    #[test]
     fn test_rpc_server_args() {
         let args = RpcServerArgs {
             http: true,
@@ -1278,6 +1302,7 @@ mod tests {
             },
             rpc_send_raw_transaction_sync_timeout: std::time::Duration::from_secs(30),
             rpc_flashbots_parent_bal: false,
+            rpc_flashbots_state_root_cache: false,
             testing_skip_invalid_transactions: true,
             testing_gas_limit: None,
             rpc_force_blob_sidecar_upcasting: false,

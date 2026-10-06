@@ -346,6 +346,7 @@ where
         );
 
         let parent_bal_validation = ctx.config.rpc.rpc_flashbots_parent_bal;
+        let state_root_validation_cache = ctx.config.rpc.rpc_flashbots_state_root_cache;
 
         let eth_config =
             EthConfigHandler::new(ctx.node.provider().clone(), ctx.node.evm_config().clone());
@@ -372,6 +373,11 @@ where
             .launch_add_ons_with(ctx, move |container| {
                 let validation_api = if parent_bal_validation {
                     validation_api.with_cached_parent_bal()
+                } else {
+                    validation_api
+                };
+                let validation_api = if state_root_validation_cache {
+                    validation_api.with_state_root_cache()
                 } else {
                     validation_api
                 };
