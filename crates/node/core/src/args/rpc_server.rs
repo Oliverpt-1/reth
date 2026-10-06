@@ -692,7 +692,7 @@ pub struct RpcServerArgs {
     )]
     pub rpc_eth_proof_window: u64,
 
-    /// Lazily use the parent's BAL on Flashbots validation state-cache misses (experimental).
+    /// Lazily reuse already decoded parent BALs on Flashbots validation cache misses (experimental).
     #[arg(long = "rpc.flashbots-parent-bal")]
     pub rpc_flashbots_parent_bal: bool,
 

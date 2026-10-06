@@ -21,7 +21,7 @@ use reth_chain_state::{
 };
 use reth_chainspec::ChainInfo;
 use reth_db_api::models::{AccountBeforeTx, BlockNumberAddress, StoredBlockBodyIndices};
-use reth_execution_types::{ExecutionOutcome, RecoveredBlockAndExecutionOutput};
+use reth_execution_types::{DecodedRevmBal, ExecutionOutcome, RecoveredBlockAndExecutionOutput};
 use reth_node_types::{BlockTy, HeaderTy, NodeTypes, NodeTypesWithDB, ReceiptTy, TxTy};
 use reth_primitives_traits::{
     Account, RecoveredBlock, SealedHeader, SealedOrRecoveredBlock, StorageEntry,
@@ -231,6 +231,10 @@ impl<N: NodeTypesWithDB> NodePrimitivesProvider for BlockchainProvider<N> {
 impl<N: ProviderNodeTypes> BalProvider for BlockchainProvider<N> {
     fn bal_store(&self) -> &BalStoreHandle {
         &self.bal_store
+    }
+
+    fn cached_revm_bal(&self, hash: BlockHash) -> Option<Arc<DecodedRevmBal>> {
+        self.canonical_in_memory_state.state_by_hash(hash)?.block_ref().bal().cloned()
     }
 }
 
@@ -1061,11 +1065,11 @@ mod tests {
             create_test_provider_factory, create_test_provider_factory_with_chain_spec,
             MockNodeTypesWithDB,
         },
-        BlockWriter, CanonChainTracker, ProviderFactory, SaveBlocksInput,
+        BalProvider, BlockWriter, CanonChainTracker, ProviderFactory, SaveBlocksInput,
     };
     use alloy_consensus::constants::EMPTY_ROOT_HASH;
     use alloy_eips::{BlockHashOrNumber, BlockNumHash, BlockNumberOrTag};
-    use alloy_primitives::{keccak256, Address, BlockNumber, TxNumber, B256, U256};
+    use alloy_primitives::{keccak256, Address, BlockNumber, Bytes, TxNumber, B256, U256};
     use itertools::Itertools;
     use rand::Rng;
     use reth_chain_state::{
@@ -1077,7 +1081,7 @@ mod tests {
     use reth_errors::ProviderError;
     use reth_ethereum_primitives::{Block, Receipt};
     use reth_execution_types::{
-        BlockExecutionOutput, BlockExecutionResult, Chain, ExecutionOutcome,
+        BlockExecutionOutput, BlockExecutionResult, Chain, DecodedRevmBal, ExecutionOutcome,
     };
     use reth_primitives_traits::{
         Account, Block as _, RecoveredBlock, SealedBlock, SignerRecoverable, StorageEntry,
@@ -3560,6 +3564,34 @@ mod tests {
             .expect("account must have storage");
         assert_eq!(storage_range.items, vec![(hashed_slot, value_a)]);
 
+        Ok(())
+    }
+
+    #[test]
+    fn cached_revm_bal_reuses_exact_executed_parent_and_reorgs() -> eyre::Result<()> {
+        let provider = BlockchainProvider::new(test_provider_factory_with_genesis()?)?;
+        let mut builder = TestBlockBuilder::eth();
+        let parent = builder.get_executed_block_with_number(1, B256::ZERO);
+        let hash = parent.recovered_block.hash();
+        let bal = Arc::new(DecodedRevmBal::new(
+            Arc::new(revm::state::bal::Bal::default()),
+            Bytes::from_static(&[0xc0]),
+        ));
+        assert!(provider.cached_revm_bal(hash).is_none());
+        provider.canonical_in_memory_state.update_chain(NewCanonicalChain::Commit {
+            new: vec![parent.clone().with_bal(Some(bal.clone()))],
+        });
+        assert!(Arc::ptr_eq(&provider.cached_revm_bal(hash).unwrap(), &bal));
+        assert!(provider.cached_revm_bal(B256::repeat_byte(0xff)).is_none());
+        // Replaced/reorged state must not return another parent's decoded handle.
+        provider.canonical_in_memory_state.clear_state();
+        let fork = builder.get_executed_block_with_number(1, B256::repeat_byte(1));
+        let fork_hash = fork.recovered_block.hash();
+        provider.canonical_in_memory_state.update_chain(NewCanonicalChain::Commit {
+            new: vec![fork.with_bal(Some(bal.clone()))],
+        });
+        assert!(provider.cached_revm_bal(hash).is_none());
+        assert!(Arc::ptr_eq(&provider.cached_revm_bal(fork_hash).unwrap(), &bal));
         Ok(())
     }
 }

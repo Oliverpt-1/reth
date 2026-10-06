@@ -3,6 +3,7 @@ use alloy_eip7928::bal::DecodedBal;
 pub use alloy_eip7928::bal::RawBal;
 use alloy_eips::NumHash;
 use alloy_primitives::{BlockHash, BlockNumber, Bytes};
+use reth_execution_types::DecodedRevmBal;
 use reth_storage_errors::provider::ProviderResult;
 
 /// Store for Block Access Lists (BALs).
@@ -216,6 +217,13 @@ pub trait BalProvider {
     /// Returns the configured BAL store handle.
     fn bal_store(&self) -> &BalStoreHandle;
 
+    /// Returns an already decoded BAL retained with executed state for this exact hash.
+    /// This lookup must not fetch, decode, or wait for background work. Providers without
+    /// an executed-state cache return `None`, allowing callers to use ordinary state reads.
+    fn cached_revm_bal(&self, _block_hash: BlockHash) -> Option<Arc<DecodedRevmBal>> {
+        None
+    }
+
     /// Fetches the BAL for the given block hash.
     fn get_bal_by_hash(&self, block_hash: BlockHash) -> ProviderResult<Option<Bytes>> {
         self.bal_store().get_by_hash(block_hash)
@@ -312,6 +320,7 @@ mod tests {
             vec![None]
         );
         assert!(provider.get_bal_by_hash(B256::random()).unwrap().is_none());
+        assert!(provider.cached_revm_bal(B256::random()).is_none());
     }
 
     #[test]

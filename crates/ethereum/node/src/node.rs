@@ -53,7 +53,7 @@ use reth_rpc_eth_api::{
         config::{EthConfigApiServer, EthConfigHandler},
         pending_block::BuildPendingEnv,
     },
-    RpcConvert, RpcNodeCoreExt, RpcTypes, SignableTxRequest,
+    RpcConvert, RpcTypes, SignableTxRequest,
 };
 use reth_rpc_eth_types::{error::FromEvmError, EthApiError};
 use reth_rpc_server_types::RethRpcModule;
@@ -371,8 +371,7 @@ where
             .map_auth_http_middleware(|middleware| Stack::new(ssz_proxy_layer, middleware))
             .launch_add_ons_with(ctx, move |container| {
                 let validation_api = if parent_bal_validation {
-                    validation_api
-                        .with_parent_bal_cache(container.registry.eth_api().cache().clone())
+                    validation_api.with_cached_parent_bal()
                 } else {
                     validation_api
                 };

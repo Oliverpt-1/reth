@@ -30,7 +30,7 @@ use reth_evm::{execute::Executor, ConfigureEvm, SenderRecoveryCache};
 use reth_execution_types::BlockExecutionOutput;
 use reth_metrics::{
     metrics,
-    metrics::{gauge, Gauge},
+    metrics::{gauge, Gauge, Histogram},
     Metrics,
 };
 use reth_node_api::{NewPayloadError, PayloadTypes};
@@ -43,12 +43,12 @@ use reth_rpc_api::BlockSubmissionValidationApiServer;
 use reth_rpc_eth_types::EthStateCache;
 use reth_rpc_server_types::result::{internal_rpc_err, invalid_params_rpc_err};
 use reth_storage_api::{
-    BlockReaderIdExt, HashedPostStateProvider, StateProvider, StateProviderFactory,
+    BalProvider, BlockReaderIdExt, HashedPostStateProvider, StateProvider, StateProviderFactory,
 };
 use reth_tasks::Runtime;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 use tokio::sync::{oneshot, RwLock};
 use tracing::warn;
 
@@ -93,6 +93,7 @@ where
             validation_window,
             cached_state: Default::default(),
             parent_bal_loader: None,
+            parent_bal_loader_waits: false,
             validated_blobs: Default::default(),
             task_spawner,
             sender_recovery_cache,
@@ -112,15 +113,30 @@ where
     /// a blocking execution worker because revm's database interface is synchronous.
     /// Omitting this builder keeps provider-only validation.
     pub fn with_parent_bal_cache<N: NodePrimitives>(mut self, cache: EthStateCache<N>) -> Self {
-        Arc::get_mut(&mut self.inner).expect("configure before cloning").parent_bal_loader = Some(
-            Arc::new(move |hash| match futures::executor::block_on(cache.get_bal(hash)) {
+        let inner = Arc::get_mut(&mut self.inner).expect("configure before cloning");
+        inner.parent_bal_loader_waits = true;
+        inner.parent_bal_loader = Some(Arc::new(move |hash| {
+            match futures::executor::block_on(cache.get_bal(hash)) {
                 Ok(bal) => bal,
                 Err(err) => {
                     warn!(target: "rpc::validation", %err, %hash, "Parent BAL unavailable; using state provider");
                     None
                 }
-            }),
-        );
+            }
+        }));
+        self
+    }
+
+    /// Reuses only decoded parent BALs already retained by the provider. Cache misses keep
+    /// ordinary state reads: this path never fetches, decodes, or schedules another worker.
+    pub fn with_cached_parent_bal(mut self) -> Self
+    where
+        Provider: BalProvider + Clone + Send + Sync + 'static,
+    {
+        let inner = Arc::get_mut(&mut self.inner).expect("configure before cloning");
+        let provider = inner.provider.clone();
+        inner.parent_bal_loader_waits = false;
+        inner.parent_bal_loader = Some(Arc::new(move |hash| provider.cached_revm_bal(hash)));
         self
     }
 
@@ -194,6 +210,7 @@ where
         registered_gas_limit: u64,
         decoded_bal: Option<DecodedBal>,
     ) -> Result<(), ValidationApiError> {
+        let stage_start = Instant::now();
         self.validate_message_against_header(block.sealed_header(), &message)?;
 
         self.consensus.validate_header(block.sealed_header())?;
@@ -256,10 +273,15 @@ where
                 .map_err(ConsensusError::from)?;
         }
 
+        self.metrics.stage_pre_execution_seconds.record(stage_start.elapsed().as_secs_f64());
+        let stage_start = Instant::now();
         let parent_header_hash = parent_header.hash();
         let state_provider = self.provider.state_by_block_hash(parent_header_hash)?;
+        self.metrics.stage_provider_seconds.record(stage_start.elapsed().as_secs_f64());
 
+        let stage_start = Instant::now();
         let (mut request_cache, parent_bal) = self.cached_reads(parent_header_hash).await;
+        self.metrics.stage_cache_read_seconds.record(stage_start.elapsed().as_secs_f64());
         let loader = committed_loader(
             self.parent_bal_loader.as_ref(),
             parent_header.block_access_list_hash(),
@@ -268,8 +290,10 @@ where
         let execution_block = block.clone();
         let validation_inner = self.inner.clone();
 
-        let needs_bal_worker = loader.is_some() && !parent_bal.is_resolved();
+        let needs_bal_worker =
+            self.parent_bal_loader_waits && loader.is_some() && !parent_bal.is_resolved();
         let execute = move || -> Result<_, ValidationApiError> {
+            let stage_start = Instant::now();
             let parent_db = ParentBalDb {
                 db: StateProviderDatabase::new((&state_provider).into_evm_state_provider()),
                 hash: parent_header_hash,
@@ -280,13 +304,22 @@ where
             let cached_db = request_cache.as_db_mut(parent_db);
             let mut executor = evm_config.batch_executor(cached_db);
             let result = executor.execute_one(&execution_block)?;
+            validation_inner
+                .metrics
+                .stage_execution_seconds
+                .record(stage_start.elapsed().as_secs_f64());
 
             // The executor rebuilds the block access list whenever the block header contains a
             // BAL hash. Comparing the rebuilt hash against the header post execution also
             // commits to the submitted access list, because the header's BAL hash is derived
             // from the submitted bytes.
+            let stage_start = Instant::now();
             let block_access_list_hash =
                 executor.take_bal().map(|bal| compute_block_access_list_hash(&bal));
+            validation_inner
+                .metrics
+                .stage_bal_hash_seconds
+                .record(stage_start.elapsed().as_secs_f64());
 
             let mut state = executor.into_state();
             if !validation_inner.disallow.is_empty() {
@@ -317,9 +350,12 @@ where
                 execute()?
             };
 
+        let stage_start = Instant::now();
         // update the cached reads
         self.update_cached_reads(parent_header_hash, request_cache, parent_bal).await;
+        self.metrics.stage_cache_update_seconds.record(stage_start.elapsed().as_secs_f64());
 
+        let stage_start = Instant::now();
         self.consensus.validate_block_post_execution(
             &block,
             &output,
@@ -328,9 +364,12 @@ where
         )?;
 
         self.ensure_payment(&block, &output, &message)?;
+        self.metrics.stage_post_execution_seconds.record(stage_start.elapsed().as_secs_f64());
 
+        let stage_start = Instant::now();
         let hashed_state = state_provider.hashed_post_state(&output.state)?;
         let state_root = state_provider.state_root(hashed_state)?;
+        self.metrics.stage_state_root_seconds.record(stage_start.elapsed().as_secs_f64());
 
         if state_root != block.header().state_root() {
             return Err(ConsensusError::BodyStateRootDiff(
@@ -481,6 +520,16 @@ where
     /// the same slot share most of their transactions, so the senders are likely to be needed again
     /// even if this submission is rejected, and only successfully recovered senders can be cached.
     fn recover_payload(
+        &self,
+        payload: ExecutionData,
+    ) -> Result<RecoveredBlock<<E::Primitives as NodePrimitives>::Block>, ValidationApiError> {
+        let stage_start = Instant::now();
+        let result = self.recover_payload_inner(payload);
+        self.metrics.stage_recovery_seconds.record(stage_start.elapsed().as_secs_f64());
+        result
+    }
+
+    fn recover_payload_inner(
         &self,
         payload: ExecutionData,
     ) -> Result<RecoveredBlock<<E::Primitives as NodePrimitives>::Block>, ValidationApiError> {
@@ -730,6 +779,8 @@ pub struct ValidationApiInner<Provider, E: ConfigureEvm, T: PayloadTypes> {
     cached_state: RwLock<(B256, CachedReads, Arc<LazyParentBal>)>,
     /// Optional loader for parent post-state, invoked only beneath a `CachedReads` miss.
     parent_bal_loader: Option<BalLoader>,
+    /// Whether the configured loader can wait on the asynchronous ETH cache service.
+    parent_bal_loader_waits: bool,
     /// Recently validated blob, commitment, and cell-proof tuples shared by V2 submissions.
     validated_blobs: BlobValidationCache,
     /// Task spawner for blocking operations
@@ -894,6 +945,24 @@ impl From<ValidationApiError> for ErrorObject<'static> {
 pub(crate) struct ValidationMetrics {
     /// The number of entries configured in the builder validation disallow list.
     pub(crate) disallow_size: Gauge,
+    /// Payload conversion and sender recovery.
+    stage_recovery_seconds: Histogram,
+    /// Consensus, parent-header, and submitted BAL checks before opening state.
+    stage_pre_execution_seconds: Histogram,
+    /// Opening the provider at the exact parent hash.
+    stage_provider_seconds: Histogram,
+    /// Reading and cloning the parent read cache, including lock wait.
+    stage_cache_read_seconds: Histogram,
+    /// Executor setup and block execution, including synchronous parent reads.
+    stage_execution_seconds: Histogram,
+    /// Extraction and hashing of the rebuilt child BAL.
+    stage_bal_hash_seconds: Histogram,
+    /// Merging the parent's read cache, including lock wait.
+    stage_cache_update_seconds: Histogram,
+    /// Post-execution consensus and proposer-payment checks.
+    stage_post_execution_seconds: Histogram,
+    /// Hashing the state changes and computing the child state root.
+    stage_state_root_seconds: Histogram,
 }
 
 #[cfg(test)]
