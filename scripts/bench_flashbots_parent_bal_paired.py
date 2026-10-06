@@ -262,6 +262,7 @@ def main():
                         assert root_hits == (args.repeats if root_cache else 0), repeat_metrics
                         assert root_misses == int(bool(root_cache)), first_metrics
                         record.update(root_cache_hits=root_hits, root_cache_misses=root_misses,
+                                      root_cache_retained_payload_bytes=sum(v for k, v in after_first[i].items() if k.endswith('_retained_payload_bytes')),
                                       first_stages_us=stages(first_metrics), repeat_stages_us=stages(repeat_metrics),
                                       first_provider_slots=count(first_metrics, 'provider_slots'),
                                       first_provider_accounts=count(first_metrics, 'provider_accounts'),
@@ -281,7 +282,8 @@ def main():
                                  'bal_load_median_us': statistics.median(p[name]['bal_load_us'] for p in pairs),
                                  'provider_slots': statistics.mean(p[name]['first_provider_slots'] for p in pairs),
                                  'provider_accounts': statistics.mean(p[name]['first_provider_accounts'] for p in pairs),
-                                 'rss_median_bytes': statistics.median(p[name]['rss_after'] for p in pairs)}
+                                 'rss_median_bytes': statistics.median(p[name]['rss_after'] for p in pairs),
+                                 'root_cache_retained_payload_bytes': statistics.median(p[name]['root_cache_retained_payload_bytes'] for p in pairs)}
                     for phase in ['first', 'repeat']:
                         key = phase+'_stages_us'
                         row[name][key] = {stage: statistics.mean(p[name][key].get(stage, 0) for p in pairs)

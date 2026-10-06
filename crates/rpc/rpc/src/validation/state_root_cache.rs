@@ -9,6 +9,7 @@
 use alloy_primitives::B256;
 use parking_lot::RwLock;
 use reth_errors::ProviderResult;
+use reth_metrics::metrics::{gauge, Gauge};
 use reth_trie_common::HashedPostState;
 use std::sync::Arc;
 
@@ -17,9 +18,21 @@ use std::sync::Arc;
 const MAX_RETAINED_BUCKETS: usize = 8192;
 
 /// Single-entry cache; concurrent misses may compute independently without holding a lock.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub(super) struct StateRootCache {
     entry: RwLock<Option<Arc<Entry>>>,
+    retained_payload_bytes: Gauge,
+}
+
+impl Default for StateRootCache {
+    fn default() -> Self {
+        Self {
+            entry: Default::default(),
+            retained_payload_bytes: gauge!(
+                "builder.validation.state_root_cache_retained_payload_bytes"
+            ),
+        }
+    }
 }
 
 impl StateRootCache {
@@ -40,9 +53,35 @@ impl StateRootCache {
         let retained = Self::admissible(&state).then(|| state.clone());
         let root = compute(state)?;
         if let Some(state) = retained {
+            self.retained_payload_bytes.set(Self::estimated_payload_bytes(&state) as f64);
             *self.entry.write() = Some(Arc::new(Entry { parent, state, root }));
         }
         Ok((root, false))
+    }
+
+    // Measures retained key/value capacity, excluding allocator/table overhead and transient
+    // copies.
+    fn estimated_payload_bytes(state: &HashedPostState) -> usize {
+        let accounts = state.accounts.capacity() *
+            std::mem::size_of::<(B256, Option<reth_primitives_traits::Account>)>();
+        let storages = state.storages.capacity() *
+            std::mem::size_of::<(B256, reth_trie_common::HashedStorage)>();
+        let slots = state
+            .storages
+            .values()
+            .map(|storage| {
+                storage.storage.capacity() * std::mem::size_of::<(B256, alloy_primitives::U256)>()
+            })
+            .sum::<usize>();
+        #[cfg(feature = "account-ext")]
+        let accounts = accounts +
+            state
+                .accounts
+                .values()
+                .flatten()
+                .map(|account| account.extension.len())
+                .sum::<usize>();
+        accounts + storages + slots
     }
 
     fn admissible(state: &HashedPostState) -> bool {
@@ -248,7 +287,7 @@ mod tests {
         let mut reordered = state.clone();
         reordered.accounts.clear();
         for key in [B256::repeat_byte(1), B256::ZERO] {
-            reordered.accounts.insert(key, state.accounts[&key].clone());
+            reordered.accounts.insert(key, state.accounts.get(&key).cloned().unwrap());
         }
         assert_eq!(
             cache.root(B256::ZERO, reordered, |_| panic!("unexpected calculation")).unwrap(),

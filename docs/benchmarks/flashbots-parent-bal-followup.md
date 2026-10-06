@@ -88,3 +88,7 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
 
 29. Scoped warnings-denied clippy found one clone-on-copy in the map-order test.
     Correcting it in a way that also supports non-Copy account-extension builds.
+
+30. Added retained map-capacity payload telemetry for the memory comparison.
+    Clippy requested copied rather than cloned for standard accounts; using owned
+    map removal in the test avoids conditional Copy/Clone assumptions entirely.
