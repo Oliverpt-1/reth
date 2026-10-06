@@ -29,6 +29,22 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
    `--rpc-cache.prewarm-bals=0`. The broader nextest run stopped compiling the new
    ignored benchmark on a StorageEntry import; corrected its crate path. Re-running.
 
+6. Broader nextest run: **288 passed**, 1 skipped (the explicit MDBX benchmark),
+   154.747 s. Scope: all reth-rpc and reth-node-core library tests. Generated CLI
+   reference from the built binary, including the opt-in flag.
+   Real V6 replay smoke: all 12 combinations (BAL on/off, cold/normal cache,
+   0/25/100% storage overlap) validated successfully, including full state-root
+   checks. Setup requires a 3-block validation window and fixed 30M builder gas
+   target. Smoke timing is discarded because the broader suite ran concurrently.
+   Corrected the metrics scraper for the `reth_` prefix before timed runs.
+   Provider-only execution retains its existing worker; only BAL-enabled execution
+   requires the additional blocking worker for the asynchronous shared cache.
+
+7. Rechecked the provider-only worker-path refinement: **30 passed**, including
+   the manual MDBX benchmark (10.39 s). Workspace nightly formatting check passed.
+   Timing from this test-suite run is discarded because tests were parallel; rerun
+   the benchmark in isolation, then build an optimized node for RPC measurements.
+
 ## Measurement scope
 
 This workspace has approximately 30 GB available disk and 10 GB RAM. No synced

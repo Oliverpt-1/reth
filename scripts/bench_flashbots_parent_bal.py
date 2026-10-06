@@ -43,7 +43,7 @@ def metrics(port):
     for line in text.splitlines():
         if not line or line.startswith('#'):
             continue
-        match = re.match(r'(builder_validation_parent_bal_\S+)\s+(\S+)', line)
+        match = re.match(r'((?:reth_)?builder_validation_parent_bal_\S+)\s+(\S+)', line)
         if match:
             result[match[1]] = float(match[2])
     return result
@@ -155,9 +155,9 @@ def main():
             genesis_path = run_dir / 'genesis.json'
             genesis_path.write_text(json.dumps(genesis(args.slots)))
             cmd = [str(args.binary), 'node', '--chain', str(genesis_path.resolve()), '--dev',
-                   '--dev.block-max-transactions', '1', '--datadir', str((run_dir / 'data').resolve()),
+                   '--dev.block-max-transactions', '1', '--builder.gaslimit', '30000000', '--datadir', str((run_dir / 'data').resolve()),
                    '--http', '--http.addr', '127.0.0.1', '--http.port', str(args.port),
-                   '--http.api', 'eth,debug,flashbots', '--authrpc.port', '0', '--port', '0',
+                   '--http.api', 'eth,debug,flashbots', '--rpc.eth-proof-window', '3', '--authrpc.port', '0', '--port', '0',
                    '--ipcdisable', '--metrics', f'127.0.0.1:{args.port+1}',
                    '--rpc-cache.prewarm-bals=0']
             if cache_kind == 'cold':

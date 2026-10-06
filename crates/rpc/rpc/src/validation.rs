@@ -268,46 +268,54 @@ where
         let execution_block = block.clone();
         let disallow = self.disallow.clone();
 
-        let (state_provider, request_cache, parent_bal, output, block_access_list_hash) = self
-            .task_spawner
-            .handle()
-            .spawn_blocking(move || -> Result<_, ValidationApiError> {
-                let parent_db = ParentBalDb {
-                    db: StateProviderDatabase::new((&state_provider).into_evm_state_provider()),
-                    hash: parent_header_hash,
-                    bal: &parent_bal,
-                    loader: loader.as_ref(),
-                    reads: Default::default(),
-                };
-                let cached_db = request_cache.as_db_mut(parent_db);
-                let mut executor = evm_config.batch_executor(cached_db);
-                let result = executor.execute_one(&execution_block)?;
+        let use_bal = loader.is_some();
+        let execute = move || -> Result<_, ValidationApiError> {
+            let parent_db = ParentBalDb {
+                db: StateProviderDatabase::new((&state_provider).into_evm_state_provider()),
+                hash: parent_header_hash,
+                bal: &parent_bal,
+                loader: loader.as_ref(),
+                reads: Default::default(),
+            };
+            let cached_db = request_cache.as_db_mut(parent_db);
+            let mut executor = evm_config.batch_executor(cached_db);
+            let result = executor.execute_one(&execution_block)?;
 
-                // The executor rebuilds the block access list whenever the block header contains a
-                // BAL hash. Comparing the rebuilt hash against the header post execution also
-                // commits to the submitted access list, because the header's BAL hash is derived
-                // from the submitted bytes.
-                let block_access_list_hash =
-                    executor.take_bal().map(|bal| compute_block_access_list_hash(&bal));
+            // The executor rebuilds the block access list whenever the block header contains a
+            // BAL hash. Comparing the rebuilt hash against the header post execution also
+            // commits to the submitted access list, because the header's BAL hash is derived
+            // from the submitted bytes.
+            let block_access_list_hash =
+                executor.take_bal().map(|bal| compute_block_access_list_hash(&bal));
 
-                let mut state = executor.into_state();
-                if !disallow.is_empty() {
-                    // Check whether the submission interacted with any blacklisted account by
-                    // scanning the `State`'s cache that records everything read from database
-                    // during execution.
-                    for account in state.cache.accounts.keys() {
-                        if disallow.contains(account) {
-                            return Err(ValidationApiError::Blacklist(*account))
-                        }
+            let mut state = executor.into_state();
+            if !disallow.is_empty() {
+                // Check whether the submission interacted with any blacklisted account by
+                // scanning the `State`'s cache that records everything read from database
+                // during execution.
+                for account in state.cache.accounts.keys() {
+                    if disallow.contains(account) {
+                        return Err(ValidationApiError::Blacklist(*account))
                     }
                 }
+            }
 
-                let output = BlockExecutionOutput { state: state.take_bundle(), result };
-                drop(state);
-                Ok((state_provider, request_cache, parent_bal, output, block_access_list_hash))
-            })
-            .await
-            .map_err(ProviderError::other)??;
+            let output = BlockExecutionOutput { state: state.take_bundle(), result };
+            drop(state);
+            Ok((state_provider, request_cache, parent_bal, output, block_access_list_hash))
+        };
+        // Preserve the existing provider-only execution path. Only BAL-enabled executions
+        // need an independent blocking worker to wait on the async ETH cache service.
+        let (state_provider, request_cache, parent_bal, output, block_access_list_hash) = if use_bal
+        {
+            self.task_spawner
+                .handle()
+                .spawn_blocking(execute)
+                .await
+                .map_err(ProviderError::other)??
+        } else {
+            execute()?
+        };
 
         // update the cached reads
         self.update_cached_reads(parent_header_hash, request_cache, parent_bal).await;
