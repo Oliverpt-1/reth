@@ -77,3 +77,6 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
 26. Bounded state-root reuse implementation and regressions added. Initial
     compilation caught test/helper import and error-construction mistakes; no
     runtime or performance result is claimed. Correcting these before execution.
+
+27. Helper import/error-construction fixes compiled; the added API regression
+    exposed one missing test-module ConsensusError import. Fixing and rerunning.

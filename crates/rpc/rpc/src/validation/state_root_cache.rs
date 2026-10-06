@@ -8,7 +8,7 @@
 
 use alloy_primitives::B256;
 use parking_lot::RwLock;
-use reth_storage_api::ProviderResult;
+use reth_errors::ProviderResult;
 use reth_trie_common::HashedPostState;
 use std::sync::Arc;
 
@@ -206,7 +206,9 @@ mod tests {
     fn provider_failure_does_not_cache_a_root() {
         let cache = StateRootCache::default();
         assert!(cache
-            .root(B256::ZERO, fixture(), |_| Err(ProviderError::other("root failure")))
+            .root(B256::ZERO, fixture(), |_| Err(ProviderError::other(std::io::Error::other(
+                "root failure"
+            ))))
             .is_err());
         assert!(!cache.root(B256::ZERO, fixture(), ethereum_root).unwrap().1);
     }
