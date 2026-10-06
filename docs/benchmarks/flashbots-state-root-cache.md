@@ -48,7 +48,12 @@ between two isolated Reth processes. Timed V6 submissions use identical payloads
 and claimed roots. Mining/imports, warmup, CPU-idle checks, metrics, RSS and bootstrap
 analysis are outside timing. Paired order is randomized; confidence intervals
 resample whole parents. A second run reverses producer/follower roles and seed.
-The cache-only BAL flag remains off in the root-only comparison.
+The cache-only BAL flag remains off in the root-only comparison. Repeats vary
+extraData to give distinct valid payload hashes with identical executed state.
+Wrong-root and unpaid requests must produce identical rejections on both nodes.
+An additional changed-fee workload signs valid sibling transactions, reconstructs
+account roots from current-child Merkle proofs, and updates BAL commitments.
+Their differing final balances must miss the root cache.
 
 These nodes run in the workspace (2-core CPU quota, 8 GiB memory limit); they are
 not a production performance node or representative builder replay corpus.
@@ -64,15 +69,15 @@ CARGO_BUILD_JOBS=2 CARGO_PROFILE_RELEASE_LTO=false \
 CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 \
 cargo build --release -p reth --bin reth --no-default-features
 
-# eth-account==0.14.0 must be installed in this Python environment.
+# eth-account==0.14.0 and trie==3.1.0 must be installed in this Python environment.
 python scripts/bench_flashbots_parent_bal_paired.py \
   --binary target/release/reth --output-dir /tmp/reth-root-paired \
   --optimization root --slots 64 512 --overlaps 0 25 100 \
-  --samples 100 --repeats 5 --seed 1729
+  --samples 100 --repeats 5 --seed 1729 --vary-extra-data
 python scripts/bench_flashbots_parent_bal_paired.py \
   --binary target/release/reth --output-dir /tmp/reth-root-reversed \
   --optimization root --slots 64 512 --overlaps 0 25 100 \
-  --samples 100 --repeats 5 --seed 2026 --reverse-nodes
+  --samples 100 --repeats 5 --seed 2026 --reverse-nodes --vary-extra-data
 ```
 
 Results pending optimized actual-node execution. See the follow-up test ledger

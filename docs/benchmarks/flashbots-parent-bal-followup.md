@@ -102,3 +102,10 @@ Artifacts: `flashbots-parent-bal-direct-results.json` and
     intentionally skipped manual benchmark (126.940 s). Existing blob, tracing,
     payment, BAL and storage regressions pass alongside root-cache changes.
     Paired harness now also collects trie walker/node-iterator counters.
+
+33. Optimized root-cache build succeeded (6m 03s); CLI reference regenerated.
+    Actual-node smoke: **48 timed V6 validations passed**, plus 24 paired
+    wrong-root/unpaid rejections matched exactly. Repeats use distinct valid
+    payload hashes with identical final state. Cache hits remove trie traversal;
+    small smoke timings are not used for a performance claim. Changed-fee sibling
+    workload has been added and is next to verify before the full matrix.

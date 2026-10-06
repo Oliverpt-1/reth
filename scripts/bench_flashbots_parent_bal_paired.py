@@ -2,11 +2,12 @@
 """Paired V6 replay: mirror identical blocks into two isolated Amsterdam nodes.
 
 Uses bench_flashbots_parent_bal's public development key only in a custom genesis.
-Requires eth-account. Timed requests alternate in seeded random order; Engine API
+Requires eth-account==0.14.0 and trie==3.1.0. Timed requests alternate in seeded random order; Engine API
 imports, mining, metrics, bootstrap analysis, and RSS sampling are outside timing.
 """
 import argparse
 import base64
+import copy
 import hashlib
 import hmac
 import json
@@ -22,6 +23,9 @@ import time
 import urllib.request
 
 import bench_flashbots_parent_bal as base
+import rlp
+from eth_hash.auto import keccak
+from trie import HexaryTrie
 
 
 def metrics(port):
@@ -93,6 +97,102 @@ def mirror(producer, follower, block):
     assert choice['payloadStatus']['status'] == 'VALID', choice
     imported = base.rpc(follower['port'], 'eth_getBlockByNumber', ['latest', False])
     assert imported['hash'] == block['hash'] and imported['stateRoot'] == block['stateRoot']
+
+
+def header_variant(request, raw_header, *, extra_data=None, state_root=None):
+    fields = rlp.decode(bytes.fromhex(raw_header.removeprefix('0x')))
+    assert '0x'+keccak(rlp.encode(fields)).hex() == request['message']['block_hash']
+    variant = copy.deepcopy(request)
+    if extra_data is not None:
+        fields[12] = extra_data
+        variant['execution_payload']['extra_data'] = '0x'+extra_data.hex()
+    if state_root is not None:
+        fields[3] = state_root
+        variant['execution_payload']['state_root'] = '0x'+state_root.hex()
+    block_hash = '0x'+keccak(rlp.encode(fields)).hex()
+    variant['message']['block_hash'] = block_hash
+    variant['execution_payload']['block_hash'] = block_hash
+    return variant
+
+
+def gas_price_variants(port, request, raw_header, repeats):
+    """Build valid sibling children with distinct sender/beneficiary post-balances.
+
+    The fixture has one legacy transaction, no withdrawals, and no GASPRICE use.
+    Changing its price changes only sender/beneficiary balances. Current-child
+    account proofs independently rebuild the new roots; signed transactions and
+    rebuilt BAL commitments let both nodes validate these noncanonical children.
+    """
+    def raw(value):
+        return bytes.fromhex(value.removeprefix('0x'))
+    def integer(value):
+        return value.to_bytes((value.bit_length()+7)//8, 'big')
+    header = rlp.decode(raw(raw_header))
+    assert len(header) == 23 and keccak(rlp.encode(header)) == raw(request['message']['block_hash'])
+    assert len(request['execution_payload']['transactions']) == 1
+    tx = rlp.decode(raw(request['execution_payload']['transactions'][0]))
+    assert len(tx) == 9
+    sender, beneficiary = base.DEV_ACCOUNT.address, request['execution_payload']['fee_recipient']
+    assert sender.lower() != beneficiary.lower()
+    proofs = [base.rpc(port, 'eth_getProof', [address, [], request['message']['block_hash']])
+              for address in [sender, beneficiary]]
+    proof_db = {keccak(raw(node)): raw(node) for proof in proofs for node in proof['accountProof']}
+    old_bal = rlp.decode(raw(request['execution_payload']['block_access_list']))
+    assert header[21] == keccak(rlp.encode(old_bal))
+    by_address = {account[0]: account for account in old_bal}
+    accounts = []
+    for address, proof in zip([sender, beneficiary], proofs):
+        key = raw(address)
+        account = [integer(int(proof['nonce'], 16)), integer(int(proof['balance'], 16)),
+                   raw(proof['storageHash']), raw(proof['codeHash'])]
+        assert HexaryTrie(proof_db.copy(), root_hash=header[3])[keccak(key)] == rlp.encode(account)
+        assert len(by_address[key][3]) == 1
+        assert by_address[key][3][0][1] == account[1]
+        accounts.append((key, account))
+    variants = []
+    for repeat in range(repeats):
+        difference = repeat+1
+        signed = base.DEV_ACCOUNT.sign_transaction({
+            'chainId': 1337, 'nonce': int.from_bytes(tx[0]), 'gasPrice': int.from_bytes(tx[1])+difference,
+            'gas': int.from_bytes(tx[2]), 'to': '0x'+tx[3].hex(), 'value': int.from_bytes(tx[4]), 'data': tx[5]})
+        transaction_trie = HexaryTrie({})
+        transaction_trie[rlp.encode(0)] = bytes(signed.raw_transaction)
+        state_trie = HexaryTrie(proof_db.copy(), root_hash=header[3])
+        bal = copy.deepcopy(old_bal)
+        new_bal = {account[0]: account for account in bal}
+        fee_delta = difference*int(request['execution_payload']['gas_used'])
+        for index, (address, account) in enumerate(accounts):
+            updated = account.copy()
+            balance = int.from_bytes(account[1]) + (fee_delta if index else -fee_delta)
+            updated[1] = integer(balance)
+            state_trie[keccak(address)] = rlp.encode(updated)
+            new_bal[address][3][0][1] = updated[1]
+        fields = header.copy()
+        fields[3], fields[4], fields[21] = state_trie.root_hash, transaction_trie.root_hash, keccak(rlp.encode(bal))
+        variant = copy.deepcopy(request)
+        payload = variant['execution_payload']
+        payload['transactions'] = ['0x'+signed.raw_transaction.hex()]
+        payload['block_access_list'] = '0x'+rlp.encode(bal).hex()
+        payload['state_root'] = '0x'+state_trie.root_hash.hex()
+        payload['block_hash'] = '0x'+keccak(rlp.encode(fields)).hex()
+        variant['message']['block_hash'] = payload['block_hash']
+        assert payload['state_root'] != request['execution_payload']['state_root']
+        variants.append(variant)
+    assert len({v['execution_payload']['state_root'] for v in variants}) == repeats
+    return variants
+
+
+def rejection(nodes, request):
+    errors = []
+    for node in nodes:
+        try:
+            base.rpc(node['port'], 'flashbots_validateBuilderSubmissionV6', [request])
+        except RuntimeError as error:
+            errors.append(str(error))
+        else:
+            raise AssertionError('invalid submission accepted')
+    assert errors[0] == errors[1], errors
+    return errors[0]
 
 
 def start_node(binary, directory, port, enabled, producer, slots, optimization):
@@ -185,6 +285,9 @@ def main():
     parser.add_argument('--overlaps', type=int, nargs='+', default=[0, 25, 100])
     parser.add_argument('--port', type=int, default=18545)
     parser.add_argument('--seed', type=int, default=1729)
+    variation = parser.add_mutually_exclusive_group()
+    variation.add_argument('--vary-gas-price', action='store_true', help='repeat with valid sibling children whose executed balances differ; root-cache must miss')
+    variation.add_argument('--vary-extra-data', action='store_true', help='repeat with distinct valid payload hashes and identical executed state; also check invalid root/payment')
     parser.add_argument('--optimization', choices=['bal', 'root', 'combined'], default='bal')
     parser.add_argument('--reverse-nodes', action='store_true', help='optimized node produces the blocks')
     args = parser.parse_args()
@@ -196,7 +299,7 @@ def main():
     results = {'binary': str(args.binary),
                'binary_sha256': hashlib.sha256(args.binary.read_bytes()).hexdigest(),
                'version': subprocess.check_output([str(args.binary), '--version'], text=True).strip(),
-               'optimization': args.optimization, 'samples': args.samples, 'repeats': args.repeats, 'seed': args.seed,
+               'vary_extra_data': args.vary_extra_data, 'vary_gas_price': args.vary_gas_price, 'optimization': args.optimization, 'samples': args.samples, 'repeats': args.repeats, 'seed': args.seed,
                'reverse_nodes': args.reverse_nodes, 'cpu_quota': Path('/sys/fs/cgroup/cpu.max').read_text().strip(),
                'memory_limit_bytes': Path('/sys/fs/cgroup/memory.max').read_text().strip(),
                'scope': 'identical payloads on isolated Amsterdam nodes; seeded randomized paired order',
@@ -225,10 +328,21 @@ def main():
                     child = base.mine(producer['port'], slots*(100-overlap)//100, slots)
                     mirror(producer, follower, child)
                     request = base.submission(producer['port'], child)
+                    if args.vary_extra_data or args.vary_gas_price:
+                        raw_header = base.rpc(producer['port'], 'debug_getRawHeader', [child['hash']])
+                        repeat_requests = (gas_price_variants(producer['port'], request, raw_header, args.repeats)
+                                           if args.vary_gas_price else
+                                           [header_variant(request, raw_header, extra_data=f'candidate-{repeat:08d}'.encode())
+                                            for repeat in range(args.repeats)])
+                    else:
+                        repeat_requests = [request]*args.repeats
                     await_idle(nodes)
                     pair = {'slots': slots, 'overlap': overlap, 'sample': sample,
                             'parent_hash': child['parentHash'], 'block_hash': child['hash'],
-                            'state_root': child['stateRoot'], 'off': {}, 'on': {}}
+                            'state_root': child['stateRoot'],
+                            'repeat_block_hashes': [r['message']['block_hash'] for r in repeat_requests],
+                            'repeat_state_roots': [r['execution_payload']['state_root'] for r in repeat_requests],
+                            'off': {}, 'on': {}}
                     before = [metrics(node['port']+1) for node in nodes]
                     rss_before = [base.rss(node['process'].pid) for node in nodes]
                     order = [0, 1]
@@ -239,11 +353,11 @@ def main():
                         assert base.rpc(nodes[i]['port'], 'flashbots_validateBuilderSubmissionV6', [request]) is None
                         pair['on' if i else 'off']['first_ms'] = [(time.perf_counter_ns()-start)/1e6]
                     after_first = [metrics(node['port']+1) for node in nodes]
-                    for _ in range(args.repeats):
+                    for repeat_request in repeat_requests:
                         rng.shuffle(order)
                         for i in order:
                             start = time.perf_counter_ns()
-                            assert base.rpc(nodes[i]['port'], 'flashbots_validateBuilderSubmissionV6', [request]) is None
+                            assert base.rpc(nodes[i]['port'], 'flashbots_validateBuilderSubmissionV6', [repeat_request]) is None
                             pair['on' if i else 'off'].setdefault('repeat_ms', []).append(
                                 (time.perf_counter_ns()-start)/1e6)
                     after = [metrics(node['port']+1) for node in nodes]
@@ -259,9 +373,11 @@ def main():
                         root_cache = i and args.optimization in ['root', 'combined']
                         root_hits = sum(v for k, v in repeat_metrics.items() if k.endswith('_state_root_cache_hits'))
                         root_misses = sum(v for k, v in first_metrics.items() if k.endswith('_state_root_cache_misses'))
-                        assert root_hits == (args.repeats if root_cache else 0), repeat_metrics
+                        assert root_hits == (args.repeats if root_cache and not args.vary_gas_price else 0), repeat_metrics
                         assert root_misses == int(bool(root_cache)), first_metrics
-                        record.update(root_cache_hits=root_hits, root_cache_misses=root_misses,
+                        repeat_root_misses = sum(v for k, v in repeat_metrics.items() if k.endswith('_state_root_cache_misses'))
+                        assert repeat_root_misses == (args.repeats if root_cache and args.vary_gas_price else 0), repeat_metrics
+                        record.update(root_cache_hits=root_hits, root_cache_misses=root_misses, repeat_root_cache_misses=repeat_root_misses,
                                       first_trie_counters={k: v for k, v in first_metrics.items() if 'trie_' in k},
                                       repeat_trie_counters={k: v/args.repeats for k, v in repeat_metrics.items() if 'trie_' in k},
                                       root_cache_retained_payload_bytes=sum(v for k, v in after_first[i].items() if k.endswith('_retained_payload_bytes')),
@@ -271,6 +387,15 @@ def main():
                                       bal_load_us=1e6*sum(v for k, v in first_metrics.items() if k.endswith('load_seconds_sum')),
                                       bal_loads=sum(v for k, v in first_metrics.items() if k.endswith('_loads')),
                                       rss_before=rss_before[i], rss_after=base.rss(node['process'].pid))
+                    if args.vary_extra_data or args.vary_gas_price:
+                        wrong_root = header_variant(request, raw_header, state_root=b'\x55'*32)
+                        root_error = rejection(nodes, wrong_root)
+                        assert child['stateRoot'] in root_error, root_error
+                        unpaid = copy.deepcopy(request)
+                        unpaid['message']['value'] = str(10**30)
+                        payment_error = rejection(nodes, unpaid)
+                        assert 'could not verify proposer payment' in payment_error, payment_error
+                        pair['rejections'] = {'wrong_root': root_error, 'unpaid_bid': payment_error}
                     pairs.append(pair)
                     results['raw'].append(pair)
                 row = {'slots': slots, 'overlap': overlap,

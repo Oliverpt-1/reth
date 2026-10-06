@@ -516,7 +516,10 @@ RPC:
           [default: 0]
 
       --rpc.flashbots-parent-bal
-          Lazily use the parent's BAL on Flashbots validation state-cache misses (experimental)
+          Lazily reuse already decoded parent BALs on Flashbots validation cache misses (experimental)
+
+      --rpc.flashbots-state-root-cache
+          Reuse state roots for exact parent and executed-state matches in Flashbots validation (experimental)
 
       --rpc.proof-permits <COUNT>
           Maximum number of concurrent getproof requests
