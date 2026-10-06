@@ -100,6 +100,15 @@ Base: upstream main `8cd725d582628cfbe5c1903aa3f88eac6c3a7243` (2026-10-06),
     rewrite: balance belongs to AccountInfoBal, exposed via AccountBal Deref.
     Corrected the nested initializer; runtime code is unaffected. Rechecking.
 
+18. Affected-package clippy passed with **`-D warnings`** (30.37 s). Scope:
+    reth-rpc, reth-node-core, reth-node-ethereum; libraries and tests, no default
+    features. Only an upstream dependency future-incompatibility notice remains.
+
+19. Final validation nextest rerun: **32 passed**, 108 skipped, 0 failed
+    (15.540 s). Optimized refined node built successfully (10m 46s). Runtime
+    binary includes commit `6e836d963` and the resolved-parent worker refinement;
+    subsequent source edits only adjust rustdoc and equivalent test initializers.
+
 ## Design
 
 Opt in with `--rpc.flashbots-parent-bal`. Validation reads in this order:
@@ -119,8 +128,9 @@ load pins one shared decoded Arc alongside the current-parent read cache; in-fli
 requests can retain earlier parents until they finish. This pin can outlive ETH
 LRU eviction, including when that LRU is disabled. No decoded BAL is copied.
 
-The ETH cache is asynchronous, so BAL-enabled execution uses a blocking worker;
-provider-only/pre-Amsterdam execution keeps its original worker path. Read metrics
+The ETH cache is asynchronous, so an unresolved BAL view uses a blocking worker.
+Resolved views (including memoized absence), provider-only, and pre-Amsterdam
+execution keep the original worker path. Read metrics
 are aggregated locally and published once per execution, avoiding metric-handle
 lookup on every EVM read. `builder.validation.parent_bal.load_seconds` measures
 shared-cache retrieval, including fetch/decode on a miss. Read counters cover EVM
