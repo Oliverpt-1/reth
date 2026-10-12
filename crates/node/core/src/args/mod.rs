@@ -6,7 +6,7 @@ pub use network::{DefaultDiscoveryArgs, DefaultNetworkArgs, DiscoveryArgs, Netwo
 
 /// RpcServerArg struct for configuring the RPC
 mod rpc_server;
-pub use rpc_server::{DefaultRpcServerArgs, RpcServerArgs};
+pub use rpc_server::{DefaultRpcServerArgs, FlashbotsParentBalMode, RpcServerArgs};
 
 /// `RpcStateCacheArgs` struct for configuring RPC state cache
 mod rpc_state_cache;

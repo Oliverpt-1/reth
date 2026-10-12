@@ -1,6 +1,6 @@
 use self::{
     blob_cache::BlobValidationCache,
-    parent_bal::{committed_loader, BalLoader, LazyParentBal, ParentBalDb},
+    parent_bal::{committed_loader, AsyncBalLoader, BalLoader, LazyParentBal, ParentBalDb},
 };
 use alloy_consensus::{
     BlobTransactionValidationError, BlockHeader, EnvKzgSettings, Transaction, TxReceipt,
@@ -95,6 +95,8 @@ where
             cached_state: Default::default(),
             parent_bal_loader: None,
             parent_bal_loader_waits: false,
+            eager_parent_bal_loader: None,
+            eager_parent_bal_each_submission: false,
             state_root_cache: None,
             validated_blobs: Default::default(),
             task_spawner,
@@ -148,6 +150,34 @@ where
         let inner = Arc::get_mut(&mut self.inner).expect("configure before cloning");
         inner.state_root_cache = Some(Default::default());
         self
+    }
+
+    /// Obtains the shared ETH cache's parent BAL before EVM execution. When `each_submission`
+    /// is false, concurrent and repeated requests reuse one committed view per parent. When
+    /// true, every submission asks the ETH cache, including when all EVM reads are cached.
+    pub fn with_eager_parent_bal_cache<N: NodePrimitives>(
+        self,
+        cache: EthStateCache<N>,
+        each_submission: bool,
+    ) -> Self {
+        let mut this = self.with_parent_bal_cache(cache.clone());
+        let inner = Arc::get_mut(&mut this.inner).expect("configure before cloning");
+        // Await cache acquisition before entering synchronous EVM reads, avoiding another worker.
+        inner.parent_bal_loader_waits = false;
+        inner.eager_parent_bal_each_submission = each_submission;
+        inner.eager_parent_bal_loader = Some(Arc::new(move |hash| {
+            let cache = cache.clone();
+            Box::pin(async move {
+                match cache.get_bal(hash).await {
+                    Ok(bal) => bal,
+                    Err(err) => {
+                        warn!(target: "rpc::validation", %err, %hash, "Parent BAL unavailable; using state provider");
+                        None
+                    }
+                }
+            })
+        }));
+        this
     }
 
     /// Returns the cached reads for the given head hash.
@@ -290,12 +320,22 @@ where
         self.metrics.stage_provider_seconds.record(stage_start.elapsed().as_secs_f64());
 
         let stage_start = Instant::now();
-        let (mut request_cache, parent_bal) = self.cached_reads(parent_header_hash).await;
+        let (mut request_cache, mut parent_bal) = self.cached_reads(parent_header_hash).await;
         self.metrics.stage_cache_read_seconds.record(stage_start.elapsed().as_secs_f64());
         let loader = committed_loader(
             self.parent_bal_loader.as_ref(),
             parent_header.block_access_list_hash(),
         );
+        if let Some(prefetch) = &self.eager_parent_bal_loader &&
+            let Some(expected) = parent_header.block_access_list_hash()
+        {
+            let stage_start = Instant::now();
+            if self.eager_parent_bal_each_submission {
+                parent_bal = Default::default();
+            }
+            parent_bal.prefetch(parent_header_hash, expected, prefetch).await;
+            self.metrics.stage_bal_prefetch_seconds.record(stage_start.elapsed().as_secs_f64());
+        }
         let evm_config = self.evm_config.clone();
         let execution_block = block.clone();
         let validation_inner = self.inner.clone();
@@ -802,6 +842,10 @@ pub struct ValidationApiInner<Provider, E: ConfigureEvm, T: PayloadTypes> {
     parent_bal_loader: Option<BalLoader>,
     /// Whether the configured loader can wait on the asynchronous ETH cache service.
     parent_bal_loader_waits: bool,
+    /// Optional asynchronous acquisition before entering the synchronous child executor.
+    eager_parent_bal_loader: Option<AsyncBalLoader>,
+    /// Ask the ETH cache for every submission instead of retaining a single parent view.
+    eager_parent_bal_each_submission: bool,
     /// Optional bounded cache of a pure parent + complete state-change root calculation.
     state_root_cache: Option<state_root_cache::StateRootCache>,
     /// Recently validated blob, commitment, and cell-proof tuples shared by V2 submissions.
@@ -976,6 +1020,8 @@ pub(crate) struct ValidationMetrics {
     stage_provider_seconds: Histogram,
     /// Reading and cloning the parent read cache, including lock wait.
     stage_cache_read_seconds: Histogram,
+    /// Eager acquisition of a parent BAL before executor setup.
+    stage_bal_prefetch_seconds: Histogram,
     /// Executor setup and block execution, including synchronous parent reads.
     stage_execution_seconds: Histogram,
     /// Extraction and hashing of the rebuilt child BAL.

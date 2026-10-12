@@ -14,22 +14,47 @@ use std::{
 };
 
 pub(super) type SharedBal = Arc<DecodedBal<Arc<Bal>>>;
+pub(super) type AsyncBalLoader =
+    Arc<dyn Fn(B256) -> futures::future::BoxFuture<'static, Option<SharedBal>> + Send + Sync>;
+
 pub(super) type BalLoader = Arc<dyn Fn(B256) -> Option<SharedBal> + Send + Sync>;
 
 /// Shared with concurrent/repeated submissions for exactly one parent hash. A missing BAL is
 /// memoized too; cache hits never reach this layer. No child writes are committed here.
 #[derive(Default)]
-pub(super) struct LazyParentBal(OnceLock<Option<SharedBal>>);
+pub(super) struct LazyParentBal {
+    resolved: OnceLock<Option<SharedBal>>,
+    prefetched: tokio::sync::OnceCell<Option<SharedBal>>,
+}
 
 impl LazyParentBal {
     /// Once resolved (including absence), subsequent reads cannot wait on the ETH service.
     pub(super) fn is_resolved(&self) -> bool {
-        self.0.get().is_some()
+        self.resolved.get().is_some()
+    }
+
+    /// Obtain and commit-check the BAL before execution, deduplicating concurrent parent loads.
+    pub(super) async fn prefetch(&self, hash: B256, expected: B256, loader: &AsyncBalLoader) {
+        if self.is_resolved() {
+            return
+        }
+        let bal = self
+            .prefetched
+            .get_or_init(|| async {
+                let start = Instant::now();
+                let bal = loader(hash).await.filter(|bal| bal.hash() == expected);
+                reth_metrics::metrics::histogram!("builder.validation.parent_bal.load_seconds")
+                    .record(start.elapsed().as_secs_f64());
+                reth_metrics::metrics::counter!("builder.validation.parent_bal.loads").increment(1);
+                bal
+            })
+            .await;
+        self.resolved.get_or_init(|| bal.clone());
     }
 
     fn get(&self, hash: B256, loader: Option<&BalLoader>) -> Option<&Bal> {
         let loader = loader?;
-        self.0
+        self.resolved
             .get_or_init(|| {
                 let start = Instant::now();
                 let bal = loader(hash);
@@ -695,6 +720,100 @@ mod tests {
         );
         assert_eq!(db.reads.storage.get(), 1); // matching commitment serves BAL
     }
+    #[tokio::test]
+    async fn eager_parent_prefetch_is_once_and_never_calls_sync_loader() {
+        let (db, bal) = fixture();
+        let (load, calls) = loader(Some(bal));
+        let expected = load(B256::ZERO).unwrap().hash();
+        calls.store(0, Ordering::Relaxed);
+        let asynchronous: AsyncBalLoader = Arc::new(move |hash| {
+            let load = load.clone();
+            Box::pin(async move {
+                tokio::task::yield_now().await;
+                load(hash)
+            })
+        });
+        let parent = LazyParentBal::default();
+        futures::future::join_all(
+            (0..16).map(|_| parent.prefetch(B256::repeat_byte(1), expected, &asynchronous)),
+        )
+        .await;
+        assert_eq!(calls.load(Ordering::Relaxed), 1);
+        assert!(parent.is_resolved());
+        let unexpected: BalLoader =
+            Arc::new(|_| panic!("prefetched BAL called synchronous loader"));
+        assert_eq!(
+            adapter(&db, &parent, Some(&unexpected)).storage_ref(ADDRESS, U256::from(1)).unwrap(),
+            U256::from(42)
+        );
+        assert_eq!(db.reads.storage.get(), 0);
+        assert_eq!(
+            adapter(&db, &parent, Some(&unexpected)).storage_ref(ADDRESS, U256::from(2)).unwrap(),
+            U256::from(99)
+        );
+        assert_eq!(db.reads.storage.get(), 1); // Read-only BAL entries still fall back.
+                                               // Fresh submission views deliberately ask again
+                                               // instead of reusing the parent's view.
+        for _ in 0..3 {
+            LazyParentBal::default().prefetch(B256::repeat_byte(1), expected, &asynchronous).await;
+        }
+        assert_eq!(calls.load(Ordering::Relaxed), 4);
+    }
+
+    #[tokio::test]
+    async fn eager_prefetch_memoizes_absence_and_rejects_wrong_commitment() {
+        for present in [false, true] {
+            let (db, bal) = fixture();
+            let (load, calls) = loader(present.then_some(bal));
+            let asynchronous: AsyncBalLoader = Arc::new(move |hash| {
+                let result = load(hash);
+                Box::pin(async move { result })
+            });
+            let parent = LazyParentBal::default();
+            for _ in 0..3 {
+                parent.prefetch(B256::repeat_byte(1), B256::ZERO, &asynchronous).await;
+            }
+            assert_eq!(calls.load(Ordering::Relaxed), 1);
+            let unexpected: BalLoader = Arc::new(|_| panic!("cached absence called loader"));
+            assert_eq!(
+                adapter(&db, &parent, Some(&unexpected))
+                    .storage_ref(ADDRESS, U256::from(1))
+                    .unwrap(),
+                U256::from(42)
+            );
+            assert_eq!(db.reads.storage.get(), 1);
+        }
+    }
+
+    #[tokio::test]
+    async fn eager_prefetch_still_keeps_child_commits_above_parent_values() {
+        let (db, bal) = fixture();
+        let (load, _) = loader(Some(bal));
+        let expected = load(B256::ZERO).unwrap().hash();
+        let sync = load.clone();
+        let asynchronous: AsyncBalLoader = Arc::new(move |hash| {
+            let result = load(hash);
+            Box::pin(async move { result })
+        });
+        let parent = LazyParentBal::default();
+        parent.prefetch(B256::repeat_byte(1), expected, &asynchronous).await;
+        let mut cache = CachedReads::default();
+        let mut state = State::builder()
+            .with_database(cache.as_db_mut(adapter(&db, &parent, Some(&sync))))
+            .with_bundle_update()
+            .build();
+        assert_eq!(state.storage(ADDRESS, U256::from(1)).unwrap(), U256::from(42));
+        let info = state.basic(ADDRESS).unwrap().unwrap();
+        let mut child = Account::from(info);
+        child.mark_touch();
+        child
+            .storage
+            .insert(U256::from(1), EvmStorageSlot::new_changed(U256::from(42), U256::from(777), 0));
+        state.commit(HashMap::from_iter([(ADDRESS, child)]));
+        assert_eq!(state.storage(ADDRESS, U256::from(1)).unwrap(), U256::from(777));
+        assert_eq!(db.reads.storage.get(), 0);
+    }
+
     /// Controlled MDBX state-read benchmark. This measures the database/cache layer, not
     /// end-to-end Flashbots RPC latency or production mainnet validation.
     #[test]

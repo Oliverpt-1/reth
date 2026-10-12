@@ -39,7 +39,7 @@ use reth_node_builder::{
     },
     BuilderContext, DebugNode, EngineApiExt, Node, NodeAdapter, PayloadBuilderConfig,
 };
-use reth_node_core::args::JitArgs;
+use reth_node_core::args::{FlashbotsParentBalMode, JitArgs};
 use reth_payload_primitives::PayloadTypes;
 use reth_provider::{providers::ProviderFactoryBuilder, EthStorage};
 use reth_rpc::{
@@ -53,7 +53,7 @@ use reth_rpc_eth_api::{
         config::{EthConfigApiServer, EthConfigHandler},
         pending_block::BuildPendingEnv,
     },
-    RpcConvert, RpcTypes, SignableTxRequest,
+    RpcConvert, RpcNodeCoreExt, RpcTypes, SignableTxRequest,
 };
 use reth_rpc_eth_types::{error::FromEvmError, EthApiError};
 use reth_rpc_server_types::RethRpcModule;
@@ -346,6 +346,7 @@ where
         );
 
         let parent_bal_validation = ctx.config.rpc.rpc_flashbots_parent_bal;
+        let parent_bal_mode = ctx.config.rpc.rpc_flashbots_parent_bal_mode;
         let state_root_validation_cache = ctx.config.rpc.rpc_flashbots_state_root_cache;
 
         let eth_config =
@@ -375,6 +376,21 @@ where
                     validation_api.with_cached_parent_bal()
                 } else {
                     validation_api
+                };
+                let validation_api = match parent_bal_mode {
+                    Some(FlashbotsParentBalMode::Lazy) => validation_api
+                        .with_parent_bal_cache(container.registry.eth_api().cache().clone()),
+                    Some(FlashbotsParentBalMode::EagerParent) => validation_api
+                        .with_eager_parent_bal_cache(
+                            container.registry.eth_api().cache().clone(),
+                            false,
+                        ),
+                    Some(FlashbotsParentBalMode::EagerSubmission) => validation_api
+                        .with_eager_parent_bal_cache(
+                            container.registry.eth_api().cache().clone(),
+                            true,
+                        ),
+                    None => validation_api,
                 };
                 let validation_api = if state_root_validation_cache {
                     validation_api.with_state_root_cache()

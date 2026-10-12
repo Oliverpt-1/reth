@@ -8,7 +8,7 @@ use alloy_primitives::map::AddressSet;
 use alloy_rpc_types_engine::JwtSecret;
 use clap::{
     builder::{PossibleValue, RangedU64ValueParser, Resettable, TypedValueParser},
-    Arg, Args, Command,
+    Arg, Args, Command, ValueEnum,
 };
 use rand::Rng;
 use reth_cli_util::{parse_duration_from_secs_or_ms, parse_ether_value};
@@ -694,8 +694,12 @@ pub struct RpcServerArgs {
 
     /// Lazily reuse already decoded parent BALs on Flashbots validation cache misses
     /// (experimental).
-    #[arg(long = "rpc.flashbots-parent-bal")]
+    #[arg(long = "rpc.flashbots-parent-bal", conflicts_with = "rpc_flashbots_parent_bal_mode")]
     pub rpc_flashbots_parent_bal: bool,
+
+    /// Experimental shared ETH-cache BAL loading strategy for Flashbots validation.
+    #[arg(long = "rpc.flashbots-parent-bal-mode", value_enum)]
+    pub rpc_flashbots_parent_bal_mode: Option<FlashbotsParentBalMode>,
 
     /// Reuse state roots for exact parent and executed-state matches in Flashbots validation
     /// (experimental).
@@ -1001,6 +1005,7 @@ impl Default for RpcServerArgs {
             gas_price_oracle,
             rpc_send_raw_transaction_sync_timeout,
             rpc_flashbots_parent_bal: false,
+            rpc_flashbots_parent_bal_mode: None,
             rpc_flashbots_state_root_cache: false,
             testing_skip_invalid_transactions: false,
             testing_gas_limit: None,
@@ -1036,6 +1041,17 @@ impl TypedValueParser for RpcModuleSelectionValueParser {
         let values = RethRpcModule::standard_variant_names().map(PossibleValue::new);
         Some(Box::new(values))
     }
+}
+
+/// Experimental strategies for obtaining the parent BAL from the shared ETH cache.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum FlashbotsParentBalMode {
+    /// Obtain BAL on the first underlying read-cache miss per parent.
+    Lazy,
+    /// Obtain BAL before execution once per parent, including absence.
+    EagerParent,
+    /// Ask the ETH cache before every submission, including repeat submissions.
+    EagerSubmission,
 }
 
 #[cfg(test)]
@@ -1138,6 +1154,35 @@ mod tests {
         let result =
             CommandParser::<RpcServerArgs>::try_parse_from(["reth", "--http.compression", "gizp"]);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn flashbots_parent_bal_modes_are_opt_in_and_exclusive() {
+        assert_eq!(
+            CommandParser::<RpcServerArgs>::parse_from(["reth"]).args.rpc_flashbots_parent_bal_mode,
+            None
+        );
+        for (name, expected) in [
+            ("lazy", FlashbotsParentBalMode::Lazy),
+            ("eager-parent", FlashbotsParentBalMode::EagerParent),
+            ("eager-submission", FlashbotsParentBalMode::EagerSubmission),
+        ] {
+            let args = CommandParser::<RpcServerArgs>::parse_from([
+                "reth",
+                "--rpc.flashbots-parent-bal-mode",
+                name,
+            ])
+            .args;
+            assert_eq!(args.rpc_flashbots_parent_bal_mode, Some(expected));
+            assert!(!args.rpc_flashbots_parent_bal);
+            assert!(CommandParser::<RpcServerArgs>::try_parse_from([
+                "reth",
+                "--rpc.flashbots-parent-bal",
+                "--rpc.flashbots-parent-bal-mode",
+                name
+            ])
+            .is_err());
+        }
     }
 
     #[test]
@@ -1302,6 +1347,7 @@ mod tests {
             },
             rpc_send_raw_transaction_sync_timeout: std::time::Duration::from_secs(30),
             rpc_flashbots_parent_bal: false,
+            rpc_flashbots_parent_bal_mode: None,
             rpc_flashbots_state_root_cache: false,
             testing_skip_invalid_transactions: true,
             testing_gas_limit: None,
