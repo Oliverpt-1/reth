@@ -79,3 +79,9 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     overlap. Covered slot calls drop 512 → 0; repeat BAL acquisitions and EVM
     provider calls are zero. Repeated 512/full-overlap change is -2.77%, but
     requires reversed-role verification before attributing it to the strategy.
+
+49. Reversed eager-parent run passed **4,800 timed valid submissions** and
+    **1,600 matching invalid rejections**. All first-request intervals again
+    include zero. At 512/full overlap: first +0.88% [-4.24%, +4.94%], repeats
+    -0.55% [-4.86%, +2.67%]. The primary repeat improvement does not reproduce at
+    full overlap; no reliable upfront-per-parent latency win is established.
