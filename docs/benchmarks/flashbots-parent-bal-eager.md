@@ -66,3 +66,9 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     **64 timed valid submissions** and **32 matching invalid rejections**. Every
     repeat acquired BAL again while EVM provider reads stayed zero. Separate
     fetch/decode measurements are present; no smoke latency claim is made.
+
+47. Lazy shared-ETH-cache node smoke passed **64 timed valid submissions** and
+    **32 matching invalid rejections**, with the same workloads as eager modes.
+    Expected covered-slot hits and zero repeat acquisitions/read calls all match.
+    Beginning normal-cache paired timing at 64/512 slots, 0/100% overlap, 100
+    parents per case and five changing-fee siblings; role reversal follows.
