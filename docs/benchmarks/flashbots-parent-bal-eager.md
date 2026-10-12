@@ -97,3 +97,9 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     cases, with intervals above zero. At 512/full overlap: repeats +1.17%
     [+0.34%, +2.11%], versus +3.77% in the primary run. First-request intervals
     include zero in the reversal. No reliable eager-submission speedup is found.
+
+52. Lazy primary comparison passed **4,800 timed valid submissions** and
+    **1,600 matching invalid rejections**. All first-request intervals include
+    zero; at 512/full overlap, first +2.19% [-3.33%, +5.77%]. Repeated calls make
+    zero BAL queries/provider reads. The repeat -4.41% result requires node-role
+    verification because no BAL read savings occur on these cached repeats.
