@@ -103,3 +103,10 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     zero; at 512/full overlap, first +2.19% [-3.33%, +5.77%]. Repeated calls make
     zero BAL queries/provider reads. The repeat -4.41% result requires node-role
     verification because no BAL read savings occur on these cached repeats.
+
+53. Reversed lazy run passed **4,800 timed valid submissions** and **1,600 matching
+    invalid rejections**. At 512/full overlap: first +3.72% [+0.40%, +8.94%],
+    repeats -1.22% [-2.65%, +0.22%]; primary repeat improvement does not reproduce.
+    All six normal-cache runs total **28,800 timed valid submissions** and
+    **9,600 matching invalid rejections**. No BAL strategy demonstrates a
+    replicated latency improvement. Disabled-decoded-LRU controls are next.
