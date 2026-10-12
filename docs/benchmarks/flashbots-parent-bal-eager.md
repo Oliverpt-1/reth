@@ -85,3 +85,9 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     include zero. At 512/full overlap: first +0.88% [-4.24%, +4.94%], repeats
     -0.55% [-4.86%, +2.67%]. The primary repeat improvement does not reproduce at
     full overlap; no reliable upfront-per-parent latency win is established.
+
+50. Eager-submission primary run passed **4,800 timed valid submissions** and
+    **1,600 matching invalid rejections**. Five repeat BAL requests per parent
+    occur despite zero repeat EVM provider calls. At 512/full overlap: first
+    +3.20% [+0.47%, +8.88%], repeats +3.77% [+2.22%, +6.35%]. Cached acquisition
+    costs approximately 94 µs per repeat. Reversed-role replication follows.
