@@ -40,3 +40,7 @@ production replay and full default/JIT feature validation remain unverified.
 43. Affected-package clippy passed with warnings denied (1m 28s), including
     Ethereum add-on wiring, RPC/core and ETH-cache libraries/tests. No eager-only
     worker hop is required. Beginning the broader library suite before timing.
+
+44. Broader RPC/core/ETH-cache library nextest passed: **366 passed**, 0 failed,
+    one intentionally skipped manual MDBX benchmark (213.125 s). Beginning the
+    optimized build; no build/test work will run during timed node comparisons.
