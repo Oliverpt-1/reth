@@ -806,9 +806,10 @@ mod tests {
         let info = state.basic(ADDRESS).unwrap().unwrap();
         let mut child = Account::from(info);
         child.mark_touch();
-        child
-            .storage
-            .insert(U256::from(1), EvmStorageSlot::new_changed(U256::from(42), U256::from(777), 0));
+        child.storage.insert(
+            U256::from(1),
+            EvmStorageSlot::new_changed(U256::from(42), U256::from(777), Default::default()),
+        );
         state.commit(HashMap::from_iter([(ADDRESS, child)]));
         assert_eq!(state.storage(ADDRESS, U256::from(1)).unwrap(), U256::from(777));
         assert_eq!(db.reads.storage.get(), 0);

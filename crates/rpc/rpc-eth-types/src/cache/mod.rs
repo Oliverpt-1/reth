@@ -412,8 +412,22 @@ where
             CacheFetch::Bal(block_hash) => {
                 let mut action_sender = ActionSender::new(CacheKind::Bal, block_hash, action_tx);
                 self.action_task_spawner.spawn_blocking_task(async move {
-                    let res = provider.get_bal_by_hash(block_hash).and_then(|maybe_bal| {
-                        maybe_bal.map(CachedRevmBal::try_from_raw).transpose()
+                    let fetch_start = Instant::now();
+                    let raw = provider.get_bal_by_hash(block_hash);
+                    reth_metrics::metrics::histogram!("rpc.eth_cache.bal_fetch_seconds")
+                        .record(fetch_start.elapsed().as_secs_f64());
+                    let res = raw.and_then(|maybe_bal| {
+                        maybe_bal
+                            .map(|raw| {
+                                let decode_start = Instant::now();
+                                let decoded = CachedRevmBal::try_from_raw(raw);
+                                reth_metrics::metrics::histogram!(
+                                    "rpc.eth_cache.bal_decode_seconds"
+                                )
+                                .record(decode_start.elapsed().as_secs_f64());
+                                decoded
+                            })
+                            .transpose()
                     });
                     drop(permit);
                     action_sender.send_bal(res);

@@ -28,3 +28,7 @@ checks and child-write precedence. Pre-Amsterdam parents skip acquisition.
 
 Results pending optimized node testing. These are synthetic local-node workloads;
 production replay and full default/JIT feature validation remain unverified.
+
+41. New preload test compilation caught a TransactionId constructor mismatch in
+    its child-write fixture. Corrected it. Added separate shared-cache fetch/decode
+    timers and explicit builder-mode reset before the next regression run.

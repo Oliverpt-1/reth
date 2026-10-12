@@ -118,6 +118,8 @@ where
     /// Omitting this builder keeps provider-only validation.
     pub fn with_parent_bal_cache<N: NodePrimitives>(mut self, cache: EthStateCache<N>) -> Self {
         let inner = Arc::get_mut(&mut self.inner).expect("configure before cloning");
+        inner.eager_parent_bal_loader = None;
+        inner.eager_parent_bal_each_submission = false;
         inner.parent_bal_loader_waits = true;
         inner.parent_bal_loader = Some(Arc::new(move |hash| {
             match futures::executor::block_on(cache.get_bal(hash)) {
@@ -139,6 +141,8 @@ where
     {
         let inner = Arc::get_mut(&mut self.inner).expect("configure before cloning");
         let provider = inner.provider.clone();
+        inner.eager_parent_bal_loader = None;
+        inner.eager_parent_bal_each_submission = false;
         inner.parent_bal_loader_waits = false;
         inner.parent_bal_loader = Some(Arc::new(move |hash| provider.cached_revm_bal(hash)));
         self
