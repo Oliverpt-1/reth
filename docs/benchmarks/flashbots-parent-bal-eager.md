@@ -36,3 +36,7 @@ production replay and full default/JIT feature validation remain unverified.
 42. Targeted nextest: **49 passed**, 0 failed, 318 skipped (24.095 s), including
     the three eager preload/absence/commit regressions, mode parsing, existing
     lifecycle/root comparisons and shared-cache budget/concurrency checks.
+
+43. Affected-package clippy passed with warnings denied (1m 28s), including
+    Ethereum add-on wiring, RPC/core and ETH-cache libraries/tests. No eager-only
+    worker hop is required. Beginning the broader library suite before timing.
