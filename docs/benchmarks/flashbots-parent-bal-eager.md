@@ -61,3 +61,8 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     invalid rejections** across 64/512 slots and 0/100% overlap. Counter assertions
     verify one BAL acquisition per parent, zero repeat acquisitions and the
     expected hit/fallback counts. No smoke performance claim is made.
+
+46. Eager-submission node smoke with the decoded BAL LRU disabled passed
+    **64 timed valid submissions** and **32 matching invalid rejections**. Every
+    repeat acquired BAL again while EVM provider reads stayed zero. Separate
+    fetch/decode measurements are present; no smoke latency claim is made.
