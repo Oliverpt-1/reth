@@ -91,3 +91,9 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     occur despite zero repeat EVM provider calls. At 512/full overlap: first
     +3.20% [+0.47%, +8.88%], repeats +3.77% [+2.22%, +6.35%]. Cached acquisition
     costs approximately 94 µs per repeat. Reversed-role replication follows.
+
+51. Reversed eager-submission run passed **4,800 timed valid submissions** and
+    **1,600 matching invalid rejections**. Repeat medians regress in all four
+    cases, with intervals above zero. At 512/full overlap: repeats +1.17%
+    [+0.34%, +2.11%], versus +3.77% in the primary run. First-request intervals
+    include zero in the reversal. No reliable eager-submission speedup is found.
