@@ -72,3 +72,10 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     Expected covered-slot hits and zero repeat acquisitions/read calls all match.
     Beginning normal-cache paired timing at 64/512 slots, 0/100% overlap, 100
     parents per case and five changing-fee siblings; role reversal follows.
+
+48. Eager-parent primary paired run passed **4,800 timed valid submissions**
+    and **1,600 matching invalid rejections**. All four first-request latency
+    intervals include zero, including +3.42% [-1.08%, +8.49%] at 512 slots/full
+    overlap. Covered slot calls drop 512 → 0; repeat BAL acquisitions and EVM
+    provider calls are zero. Repeated 512/full-overlap change is -2.77%, but
+    requires reversed-role verification before attributing it to the strategy.
