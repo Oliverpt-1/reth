@@ -32,3 +32,7 @@ production replay and full default/JIT feature validation remain unverified.
 41. New preload test compilation caught a TransactionId constructor mismatch in
     its child-write fixture. Corrected it. Added separate shared-cache fetch/decode
     timers and explicit builder-mode reset before the next regression run.
+
+42. Targeted nextest: **49 passed**, 0 failed, 318 skipped (24.095 s), including
+    the three eager preload/absence/commit regressions, mode parsing, existing
+    lifecycle/root comparisons and shared-cache budget/concurrency checks.

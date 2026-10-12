@@ -33,7 +33,7 @@ def metrics(port):
         lines = response.read().decode().splitlines()
     values = {}
     for line in lines:
-        match = re.match(r'((?:reth_)?(?:builder_validation_(?:parent_bal_|stage_|state_root_cache_)|trie_(?:walker_|node_iter_))\S+)\s+(\S+)', line)
+        match = re.match(r'((?:reth_)?(?:builder_validation_(?:parent_bal_|stage_|state_root_cache_)|trie_(?:walker_|node_iter_)|rpc_eth_cache_)\S+)\s+(\S+)', line)
         if match and 'quantile=' not in match[1]:
             values[match[1]] = float(match[2])
     return values
@@ -195,7 +195,7 @@ def rejection(nodes, request):
     return errors[0]
 
 
-def start_node(binary, directory, port, enabled, producer, slots, optimization):
+def start_node(binary, directory, port, enabled, producer, slots, optimization, bal_mode, bal_cache):
     directory.mkdir()
     genesis = directory/'genesis.json'
     genesis.write_text(json.dumps(base.genesis(slots)))
@@ -211,8 +211,11 @@ def start_node(binary, directory, port, enabled, producer, slots, optimization):
            '--metrics', f'127.0.0.1:{port+1}', '--rpc-cache.prewarm-bals=0']
     if producer:
         cmd += ['--dev', '--dev.block-max-transactions', '1']
+    if bal_cache == 'disabled':
+        cmd += ['--rpc-cache.max-bals', '0']
     if enabled and optimization in ['bal', 'combined']:
-        cmd += ['--rpc.flashbots-parent-bal']
+        cmd += (['--rpc.flashbots-parent-bal'] if bal_mode == 'cached-only' else
+                ['--rpc.flashbots-parent-bal-mode', bal_mode])
     if enabled and optimization in ['root', 'combined']:
         cmd += ['--rpc.flashbots-state-root-cache']
     log = (directory/'node.log').open('w')
@@ -288,6 +291,8 @@ def main():
     variation = parser.add_mutually_exclusive_group()
     variation.add_argument('--vary-gas-price', action='store_true', help='repeat with valid sibling children whose executed balances differ; root-cache must miss')
     variation.add_argument('--vary-extra-data', action='store_true', help='repeat with distinct valid payload hashes and identical executed state; also check invalid root/payment')
+    parser.add_argument('--bal-mode', choices=['cached-only', 'lazy', 'eager-parent', 'eager-submission'], default='cached-only')
+    parser.add_argument('--bal-cache', choices=['normal', 'disabled'], default='normal')
     parser.add_argument('--optimization', choices=['bal', 'root', 'combined'], default='bal')
     parser.add_argument('--reverse-nodes', action='store_true', help='optimized node produces the blocks')
     args = parser.parse_args()
@@ -299,7 +304,7 @@ def main():
     results = {'binary': str(args.binary),
                'binary_sha256': hashlib.sha256(args.binary.read_bytes()).hexdigest(),
                'version': subprocess.check_output([str(args.binary), '--version'], text=True).strip(),
-               'vary_extra_data': args.vary_extra_data, 'vary_gas_price': args.vary_gas_price, 'optimization': args.optimization, 'samples': args.samples, 'repeats': args.repeats, 'seed': args.seed,
+               'vary_extra_data': args.vary_extra_data, 'vary_gas_price': args.vary_gas_price, 'optimization': args.optimization, 'bal_mode': args.bal_mode, 'bal_cache': args.bal_cache, 'samples': args.samples, 'repeats': args.repeats, 'seed': args.seed,
                'reverse_nodes': args.reverse_nodes, 'cpu_quota': Path('/sys/fs/cgroup/cpu.max').read_text().strip(),
                'memory_limit_bytes': Path('/sys/fs/cgroup/memory.max').read_text().strip(),
                'scope': 'identical payloads on isolated Amsterdam nodes; seeded randomized paired order',
@@ -311,7 +316,7 @@ def main():
         try:
             for enabled in [False, True]:
                 nodes.append(start_node(args.binary, run_dir/str(enabled), args.port+10*int(enabled),
-                                        enabled, enabled == args.reverse_nodes, slots, args.optimization))
+                                        enabled, enabled == args.reverse_nodes, slots, args.optimization, args.bal_mode, args.bal_cache))
             producer = nodes[int(args.reverse_nodes)]
             follower = nodes[int(not args.reverse_nodes)]
             for _ in range(4):
@@ -374,7 +379,13 @@ def main():
                         assert count(first_metrics, 'bal_slots') == expected_hits, first_metrics
                         assert count(first_metrics, 'provider_slots') == slots-expected_hits, first_metrics
                         assert all(value == 0 for key, value in repeat_metrics.items()
-                                   if 'parent_bal_' in key), repeat_metrics
+                                   if 'parent_bal_' in key and '_reads{' in key), repeat_metrics
+                        first_loads = sum(v for k, v in first_metrics.items() if k.endswith('parent_bal_loads'))
+                        repeat_loads = sum(v for k, v in repeat_metrics.items() if k.endswith('parent_bal_loads'))
+                        bal_enabled = i and args.optimization in ['bal', 'combined']
+                        assert first_loads == int(bool(bal_enabled)), first_metrics
+                        expected_repeat_loads = args.repeats if bal_enabled and args.bal_mode == 'eager-submission' else 0
+                        assert repeat_loads == expected_repeat_loads, repeat_metrics
                         root_cache = i and args.optimization in ['root', 'combined']
                         root_hits = sum(v for k, v in repeat_metrics.items() if k.endswith('_state_root_cache_hits'))
                         root_misses = sum(v for k, v in first_metrics.items() if k.endswith('_state_root_cache_misses'))
@@ -382,7 +393,14 @@ def main():
                         assert root_misses == int(bool(root_cache)), first_metrics
                         repeat_root_misses = sum(v for k, v in repeat_metrics.items() if k.endswith('_state_root_cache_misses'))
                         assert repeat_root_misses == (args.repeats if root_cache and args.vary_gas_price else 0), repeat_metrics
-                        record.update(root_cache_hits=root_hits, root_cache_misses=root_misses, repeat_root_cache_misses=repeat_root_misses,
+                        record.update(repeat_bal_loads=repeat_loads,
+                                      repeat_bal_load_us=1e6*sum(v for k, v in repeat_metrics.items() if k.endswith('parent_bal_load_seconds_sum'))/args.repeats,
+                                      first_bal_fetch_us=1e6*sum(v for k, v in first_metrics.items() if 'bal_fetch_seconds_sum' in k),
+                                      first_bal_decode_us=1e6*sum(v for k, v in first_metrics.items() if 'bal_decode_seconds_sum' in k),
+                                      repeat_bal_fetch_us=1e6*sum(v for k, v in repeat_metrics.items() if 'bal_fetch_seconds_sum' in k)/args.repeats,
+                                      repeat_bal_decode_us=1e6*sum(v for k, v in repeat_metrics.items() if 'bal_decode_seconds_sum' in k)/args.repeats,
+                                      bal_cache_metrics={k: v for k, v in after_first[i].items() if 'rpc_eth_cache_' in k and 'cache="bals"' in k},
+                                      root_cache_hits=root_hits, root_cache_misses=root_misses, repeat_root_cache_misses=repeat_root_misses,
                                       first_trie_counters={k: v for k, v in first_metrics.items() if 'trie_' in k},
                                       repeat_trie_counters={k: v/args.repeats for k, v in repeat_metrics.items() if 'trie_' in k},
                                       root_cache_retained_payload_bytes=sum(v for k, v in after_first[i].items() if k.endswith('_retained_payload_bytes')),
@@ -412,6 +430,9 @@ def main():
                     row[name] = {'first_median_ms': statistics.median(first), 'first_p95_ms': base.percentile(first, .95),
                                  'repeat_median_ms': statistics.median(repeats), 'repeat_p95_ms': base.percentile(repeats, .95),
                                  'bal_load_median_us': statistics.median(p[name]['bal_load_us'] for p in pairs),
+                                 'repeat_bal_load_median_us': statistics.median(p[name]['repeat_bal_load_us'] for p in pairs),
+                                 'repeat_bal_loads': statistics.mean(p[name]['repeat_bal_loads'] for p in pairs),
+                                 **{field: statistics.median(p[name][field] for p in pairs) for field in ['first_bal_fetch_us','first_bal_decode_us','repeat_bal_fetch_us','repeat_bal_decode_us']},
                                  'provider_slots': statistics.mean(p[name]['first_provider_slots'] for p in pairs),
                                  'provider_accounts': statistics.mean(p[name]['first_provider_accounts'] for p in pairs),
                                  'rss_median_bytes': statistics.median(p[name]['rss_after'] for p in pairs),
