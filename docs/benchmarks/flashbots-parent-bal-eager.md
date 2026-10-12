@@ -44,3 +44,20 @@ production replay and full default/JIT feature validation remain unverified.
 44. Broader RPC/core/ETH-cache library nextest passed: **366 passed**, 0 failed,
     one intentionally skipped manual MDBX benchmark (213.125 s). Beginning the
     optimized build; no build/test work will run during timed node comparisons.
+
+## Planned node comparison
+
+Same optimized artifact in both modes. Each run compares one BAL strategy against
+provider-only validation using identical submissions, randomized pair order,
+independently verified sibling roots and changing transaction fees. Warmup, block
+import, proof construction, metrics, RSS and analysis are outside timing. Root
+result reuse stays disabled. Repeat-provider calls must be zero in all modes;
+repeat BAL acquisitions must be zero for lazy/eager-parent and one per request
+for eager-submission. Repeat each normal-cache strategy with reversed node roles
+and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
+
+45. Optimized build succeeded (11m 24s); CLI reference regenerated. Eager-parent
+    actual-node smoke passed **64 timed valid submissions** and **32 matching
+    invalid rejections** across 64/512 slots and 0/100% overlap. Counter assertions
+    verify one BAL acquisition per parent, zero repeat acquisitions and the
+    expected hit/fallback counts. No smoke performance claim is made.

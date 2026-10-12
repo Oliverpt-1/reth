@@ -518,6 +518,14 @@ RPC:
       --rpc.flashbots-parent-bal
           Lazily reuse already decoded parent BALs on Flashbots validation cache misses (experimental)
 
+      --rpc.flashbots-parent-bal-mode <RPC_FLASHBOTS_PARENT_BAL_MODE>
+          Experimental shared ETH-cache BAL loading strategy for Flashbots validation
+
+          Possible values:
+          - lazy:             Obtain BAL on the first underlying read-cache miss per parent
+          - eager-parent:     Obtain BAL before execution once per parent, including absence
+          - eager-submission: Ask the ETH cache before every submission, including repeat submissions
+
       --rpc.flashbots-state-root-cache
           Reuse state roots for exact parent and executed-state matches in Flashbots validation (experimental)
 
