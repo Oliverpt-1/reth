@@ -124,3 +124,11 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     at 512. Repeats acquire/decode no BAL; 512 repeat change is -0.49%
     [-1.59%, +0.78%]. Covered first-slot calls still drop to zero. This control
     supports retaining the per-parent view to avoid repeat acquisition cost.
+
+56. Lazy with decoded BAL LRU disabled passed **1,200 timed valid submissions**
+    and **400 matching invalid rejections**. First paired medians are +10.86%
+    [-0.38%, +36.81%] at 64 slots and +7.08% [-2.62%, +19.14%] at 512. Repeat
+    changes differ by case (-5.78% and +8.99%) despite zero repeat BAL loads and
+    provider calls. This single-role control does not establish a lazy speedup.
+    Nine completed timing runs total **32,400 valid** and **10,800 matching
+    invalid** validation calls; final artifact/report verification follows.
