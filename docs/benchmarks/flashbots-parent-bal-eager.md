@@ -117,3 +117,10 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     Repeat decode medians are approximately 31 and 107 µs, respectively; warm
     state/raw bytes are retained, so this is decoded-cache-cold, not disk-cold.
     Checking the once-per-parent variants under the same cache setting next.
+
+55. Eager-parent with decoded BAL LRU disabled passed **1,200 timed valid
+    submissions** and **400 matching invalid rejections**. First requests
+    regress +16.95% [+1.37%, +25.36%] at 64 slots and +7.22% [+2.30%, +11.18%]
+    at 512. Repeats acquire/decode no BAL; 512 repeat change is -0.49%
+    [-1.59%, +0.78%]. Covered first-slot calls still drop to zero. This control
+    supports retaining the per-parent view to avoid repeat acquisition cost.
