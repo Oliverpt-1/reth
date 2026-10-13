@@ -110,3 +110,10 @@ and a different seed, plus disabled-decoded-LRU controls to expose fetch/decode.
     All six normal-cache runs total **28,800 timed valid submissions** and
     **9,600 matching invalid rejections**. No BAL strategy demonstrates a
     replicated latency improvement. Disabled-decoded-LRU controls are next.
+
+54. Eager-submission with decoded BAL LRU disabled passed **1,200 timed valid
+    submissions** and **400 matching invalid rejections**. Repeats regress
+    +15.05% [+11.39%, +17.88%] at 64 slots and +9.54% [+4.93%, +12.78%] at 512.
+    Repeat decode medians are approximately 31 and 107 µs, respectively; warm
+    state/raw bytes are retained, so this is decoded-cache-cold, not disk-cold.
+    Checking the once-per-parent variants under the same cache setting next.
