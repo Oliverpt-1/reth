@@ -191,6 +191,15 @@ benchmark results above.
 
 ## Remaining gaps
 
+The follow-up historical Sepolia execution attempt stopped at the storage gate:
+physical-disk inspection found no external drive and only 556,332,900,352 bytes
+free internally, below the 699,471,472,110-byte compressed snapshot. Expanded
+size, treatment-copy capacity and actual database compatibility remain
+unverified. No download, historical validation or timing round ran. See the
+[exact commands and storage blocker](archive/flashbots-parent-bal-storage-blocker.md).
+All historical acceptance criteria remain open; the synthetic evidence above
+does not substitute for them.
+
 Live-node reorg validation, isolated incremental memory, production submission
 replay, cold-storage behavior and full default/JIT-feature verification remain
 open. These were synthetic Amsterdam workloads on two local RETH nodes, with a
