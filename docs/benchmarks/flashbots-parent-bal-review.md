@@ -4,8 +4,7 @@ I tested using the parent's BAL during Flashbots validation. It reduced reads
 from the state provider, and results and state roots matched in the cases tested.
 I haven't found a consistent improvement in validation time.
 
-I'd like to repeat the comparison against a larger database with a more
-representative workload. The tests so far used a small synthetic chain with
+The tests so far used a small synthetic chain with
 mostly cached data, so they don't tell us whether avoiding more expensive reads
 would make the extra BAL work worthwhile.
 
