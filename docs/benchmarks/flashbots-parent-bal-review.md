@@ -65,16 +65,6 @@ specifically by the optimization or established a memory saving.
 The next comparison should use a larger state database and realistic
 transactions, including different candidates for the same parent. The question
 is whether BAL avoids expensive reads often enough to offset its own overhead.
-A larger database alone doesn't guarantee that: the parent's recent writes could
-still be cached.
-
-Public Sepolia payloads and BALs are available, but historical validation has
-not run. I don't currently have a suitable local database or enough verified
-storage for the available snapshot. A recommended setup where I can run the
-modified Reth binary against matching state would be helpful.
-
-I'd repeat the measurements above there. Cold-storage behavior, a full live
-reorg test and isolated incremental memory measurements also remain open.
 
 ## Supporting results
 
