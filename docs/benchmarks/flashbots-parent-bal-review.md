@@ -64,6 +64,6 @@ replay, cold-storage behavior and full default/JIT-feature verification remain
 open. These were synthetic Amsterdam workloads on two local RETH nodes, with a
 two-core/8 GiB container. Keep the optimization experimental.
 
-[Detailed results, confidence intervals and raw paired measurements](flashbots-parent-bal-eager.md)
+[Detailed results, confidence intervals and raw paired measurements](archive/flashbots-parent-bal-eager.md)
 · [Regression tests](../../crates/rpc/rpc/src/validation/parent_bal.rs)
 · [Node benchmark harness](../../scripts/bench_flashbots_parent_bal_paired.py)

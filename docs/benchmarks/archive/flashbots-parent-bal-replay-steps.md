@@ -2,7 +2,7 @@
 
 This is the setup/replay procedure, not a claim that a representative replay has
 already run. The new replay utility is checked with a mock RPC server. The earlier
-synthetic node results are in [the brief review](flashbots-parent-bal-review.md).
+synthetic node results are in [the brief review](../flashbots-parent-bal-review.md).
 
 ## 1. Obtain the data before renting a server
 
