@@ -14,7 +14,24 @@ shared ETH BAL cache and a read-only adapter below CachedReads and child state:
 
 The parent BAL is never attached directly to the child's mutable State.
 
+## Acceptance criteria: evidence and verdict
+
+| Criterion | What verifies it | Verdict |
+|---|---|---|
+| 1. Matching validation results and roots, including the listed edge cases | Enabled/off EVM execution compares results, receipts, rebuilt BALs, state changes and trie roots for controlled missing-BAL, partial/code-field and lifecycle/clear fixtures. Actual-node RPC runs accept the same valid roots and reject wrong roots/payments identically. Noncanonical-parent fixtures check exact-hash values. | Passed for the execution fixtures and node workloads. Reorg coverage is partial: exact-hash reads were checked, but full live-reorg validation/root comparisons remain open. |
+| 2. BAL hits, provider fallback and no stale values after child writes | Counter assertions check hits/fallback. Child commits change balance, nonce, code and storage; subsequent reads see child values, child creation clears storage, and the next submission's CachedReads still contains parent values. | Passed in the regression tests. |
+| 3. Before/after reads, BAL cost, memory and first/repeated latency | Metrics include provider-call counts, acquisition, separate raw fetch/decode timings, node RSS, shared BAL-cache bytes and validation stages. First and repeated requests are measured at 0/100% overlap, with normal and disabled decoded BAL caches. | Measurements collected for synthetic local workloads. Memory measures whole-node RSS/shared cache; the additional allocation pinned solely by validation was not isolated. No replicated latency improvement was established. |
+
+A measured slowdown is a valid outcome for criterion 3. The remaining coverage
+limits above should accompany any claim that all acceptance criteria are met.
+
 ## Tests completed
+
+Regression tests use controlled in-memory/counting database fixtures, with real
+EVM execution for the execution/root comparisons. The performance runs use actual
+RETH node processes, real MDBX state providers and validation RPC calls against a
+synthetic Amsterdam chain. Only the separate future-corpus replay utility has
+mock-server checks; it did not produce these benchmark results.
 
 - **Execution/root comparison:** enabled versus disabled execution compared
   results, receipts, rebuilt BALs, state changes and independently calculated
@@ -33,6 +50,23 @@ The parent BAL is never attached directly to the child's mutable State.
   and 10,800 matching invalid rejections. Repeats use distinct executed balances
   and roots. Root-result caching was disabled.
 
+Named regression entry points in [the test source](../../crates/rpc/rpc/src/validation/parent_bal.rs):
+
+- `ethereum_execution_receipts_bal_and_state_roots_match`: enabled/off execution
+  and calculated-root equality across five fixture variants.
+- `every_partial_account_field_combination_preserves_provider_metadata` and
+  `partial_code_change_preserves_nonce_balance_and_existence`: incomplete
+  account/code entries preserve missing metadata through provider fallback.
+- `final_writes_partial_accounts_and_provider_fallback`,
+  `missing_or_disabled_bal_preserves_provider_reads` and
+  `deletion_and_storage_wide_clears_use_parent_post_state`: final values, hits,
+  missing/read-only values, deletion and clear fallback.
+- `child_writes_and_child_storage_clears_win_over_parent_bal`: no stale parent
+  values after child commits; no child modifications leaking into the next
+  submission's parent read cache. An eager-prefetch regression checks precedence too.
+- `noncanonical_parent_uses_its_exact_hash_and_post_state`: different parent
+  hashes return their own values. This is the limited reorg-related coverage.
+
 ## Findings
 
 Normal decoded BAL cache, 512 slots, full parent-write/child-read overlap.
@@ -44,6 +78,36 @@ changes from two runs with node roles reversed.
 | Lazy | 512 → 0 | +2.19% / +3.72% | No replicated speedup |
 | Upfront per parent | 512 → 0 | +3.42% / +0.88% | No replicated speedup |
 | Upfront every submission | 512 → 0 | +3.20% / −0.32% | +3.77% / +1.17% slower |
+
+### Explicit before/after example: lazy loading
+
+512 slots, full overlap, primary normal-cache run. Values are separate medians;
+their ratios differ from the paired percentage statistic above.
+
+| Metric | First submission: off → lazy | Repeated submission: off → lazy |
+|---|---:|---:|
+| Provider storage calls | 512 → 0 | 0 → 0 |
+| Provider account calls | 9 → 9 | 0 → 0 |
+| BAL acquisition time | 0 → 117.2 µs | 0 → 0 µs |
+| Actual raw BAL fetch / decode | 0 / 0 → 0 / 0 µs (decoded-cache hit) | 0 / 0 → 0 / 0 µs |
+| RPC validation latency | 8.271 → 8.309 ms | 4.063 → 3.912 ms |
+
+With the decoded BAL LRU disabled, the same 512/full-overlap lazy control has
+first acquisition **0 → 452.4 µs**, raw fetch **0 → 12.0 µs**, and decode
+**0 → 177.4 µs**. Repeats do not reacquire/fetch/decode. These are separate
+component medians, not additive; state/raw bytes remain warm in this control.
+
+Whole-node RSS after the timed sequence is **2655.8 → 2611.6 MiB** in the primary
+lazy run, versus **2606.9 → 2638.9 MiB** after node-role reversal. These noisy
+whole-node figures do not establish an incremental BAL memory saving. Median
+shared BAL-cache bytes are **16,691,816 → 16,691,816** for this full-overlap matrix;
+both nodes import the same parents. RSS/cache gauges are retained per pair in
+[the CSV](archive/flashbots-parent-bal-lazy-primary-pairs.csv). Latency, provider
+counts and timing summaries are in [the JSON](archive/flashbots-parent-bal-lazy-primary-results.json).
+
+The repeated-request improvement in the primary lazy run did not reproduce with
+statistical confidence after role reversal. Repeats largely reuse the same
+storage read set despite changing fees/state roots.
 
 - At zero overlap, provider slot calls remain unchanged. Partial account metadata
   still requires provider fallback.
