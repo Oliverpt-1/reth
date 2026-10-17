@@ -55,10 +55,13 @@ With the decoded BAL cache disabled, first lazy acquisition took 452.4 µs in th
 are not additive. State and raw BAL bytes remained warm, so this was not a
 cold-disk test.
 
-I measured whole-node memory and shared BAL-cache size. The memory difference
-changed direction when node roles were reversed, and shared cache size was
-unchanged in the example above. I haven't isolated the extra memory retained
-specifically by the optimization or established a memory saving.
+An isolated allocation test now covers the production adapter and shared ETH
+cache across 36 cases. Lazy and eager-parent share decoded BALs rather than
+copying them, but keep them alive after shared-cache eviction: 117,376 bytes
+for the 512-slot fixture. Dropping the validation views released those bytes.
+Disabled and sequential eager-submission retained no payload after eviction.
+The 88-byte parent view exists in all four modes. This isolates payload lifetime
+and caller allocations; it does not establish a whole-node memory saving.
 
 ## What I'd test next
 
@@ -68,6 +71,8 @@ is whether BAL avoids expensive reads often enough to offset its own overhead.
 
 ## Supporting results
 
+- [Isolated allocations, ownership and limits](archive/flashbots-parent-bal-allocation-study.md)
+  and [raw allocation measurements](archive/flashbots-parent-bal-allocations.json)
 - [Full methodology, mode comparisons and confidence intervals](archive/flashbots-parent-bal-eager.md)
 - [Saved benchmark results](archive/flashbots-parent-bal-lazy-primary-results.json)
   and [individual paired measurements](archive/flashbots-parent-bal-lazy-primary-pairs.csv)
