@@ -150,12 +150,44 @@ is `83f426c80d438e0654ec9c23e2db122dbfc42e5b24c773b151c7a27313f5ba54`.
 All 16 focused parent-BAL tests passed. Earlier synthetic latency findings remain
 unchanged; these attempts add **zero new latency samples**.
 
-Next steps require a post-Amsterdam RETH database with retained parent BALs and
-matching realistic orderflow (for example Sepolia orderflow from another source),
-plus a historical builder path that computes real roots and emits complete V6
-submissions. Then run the same enabled/off comparison with real candidate
-variation. Existing default backtest builder timings neither produce a complete
-validation payload nor measure this Flashbots validation adapter.
+### Wider source search: historical data is available
+
+The registry check above was too narrow to settle availability. A subsequent
+public-source investigation fetched a real Sepolia block, its raw BAL and its
+complete consensus execution payload envelope. The BAL's Keccak hash matches
+the block-header commitment, and the envelope matches the same execution block
+and canonical beacon root. These were data checks, not local execution.
+
+- EthPandaOps publishes Sepolia RETH datadir snapshots outside the modular RETH
+  registry. The checked snapshot at block **11,930,000** uses RETH 2.7.0; its
+  archive is **699,471,472,110 bytes compressed**, exceeding the Mac's free disk.
+  Expanded size, compatible database version and historical state/BAL retention
+  still need checking before using it.
+- Public Sepolia execution and beacon APIs served the block, raw BAL and full
+  payload, including signed transactions and execution requests. Confirmed
+  blocks can supply the first real-chain replay workload without Mempool
+  Dumpster, rbuilder backtesting or a test relay. Converting them to V6 requests
+  and obtaining matching local state remain unfinished. Blob-bearing payloads
+  also require a valid blob bundle; the downloaded sample has blobs.
+- Xatu publishes Sepolia BAL Parquet files. The October 14 file responded with
+  valid Parquet magic. This can support an initial parent-write/child-access
+  overlap analysis without a full node, but does not measure validation latency.
+- Benchmarkoor has a public Amsterdam stateful fixture release and configurations
+  for generating substantial state. This offers a second, controlled experiment.
+  Matching prestate and fork rules are required; its default Engine API runner
+  does not invoke this Flashbots optimization.
+
+The practical next step is a Sepolia state database on sufficient storage,
+followed by exporting confirmed payloads into explicit test V6 wrappers and
+running enabled/off validation. No original builder bid is implied by such a
+wrapper. After that, add different candidates for the same parent to test read
+cache reuse. A historical builder with real root calculation is needed only if
+we choose to generate those candidates through rbuilder's historical path.
+
+[Source investigation, exact URLs and remaining checks](archive/flashbots-parent-bal-data-sources.md)
+and [HTTP/RPC evidence](archive/flashbots-parent-bal-data-sources.json).
+This follow-up adds **zero validation latency samples** and changes none of the
+benchmark results above.
 
 ## Remaining gaps
 

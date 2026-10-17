@@ -1,0 +1,456 @@
+{
+  "scope": "Public source availability and payload consistency only. No historical validation benchmark.",
+  "checked_at_utc": "2026-10-17T17:40:10.332416+00:00",
+  "source_revisions": {
+    "reth_branch_head": "29d7534afc54872ce83eda5dc12c99eea08487f7",
+    "benchmarkoor-tests": "16fe73e1473e4ea03386c9f3ea5da5c52a2c750c",
+    "buildoor": "9f07c677fabff351acce5814c44dcbccaee8130d",
+    "xatu-data": "c0935f0bf5f380575415ef905b4f679d9772961a"
+  },
+  "public_payload": {
+    "network": "Ethereum Sepolia",
+    "chain_id": 11155111,
+    "height": 11930000,
+    "block_hash": "0x963c8c0acd844a863e678f42084401f747e7d2d1a18697ab3e37ec248d1e458e",
+    "parent_hash": "0x9e2b2559dcd2d46f08634e6beb99408b72bd0b6712e35c422fb7f66d7614e8ae",
+    "beacon_slot": 11371158,
+    "beacon_block_root": "0xe264ad86f7e51c9cc79dd0ba3226e7388cd952fdc87ac5b8aab140d4fe883678",
+    "timestamp_utc": "2026-10-16T21:51:36+00:00",
+    "transactions": 265,
+    "bal_bytes": 89870,
+    "bal_account_entries": 637,
+    "blob_gas_used": 2490368,
+    "execution_request_counts": {
+      "deposits": 0,
+      "withdrawals": 0,
+      "consolidations": 0,
+      "builder_deposits": 0,
+      "builder_exits": 0
+    },
+    "payload_keys": [
+      "parent_hash",
+      "fee_recipient",
+      "state_root",
+      "receipts_root",
+      "logs_bloom",
+      "prev_randao",
+      "block_number",
+      "gas_limit",
+      "gas_used",
+      "timestamp",
+      "extra_data",
+      "base_fee_per_gas",
+      "block_hash",
+      "transactions",
+      "withdrawals",
+      "blob_gas_used",
+      "excess_blob_gas",
+      "block_access_list",
+      "slot_number"
+    ],
+    "checks": {
+      "payload_block_hash_matches_execution_header": true,
+      "bal_bytes_match_rpc": true,
+      "bal_keccak_matches_header": true,
+      "beacon_root_matches_canonical_header": true,
+      "parent_beacon_root_matches_execution_header": true,
+      "signed_transaction_hashes_match_header_response": true,
+      "independent_transaction_trie_matches_header": true
+    },
+    "raw_source_sha256": {
+      "snapshot-head": "0523bc0381ec3df2d854e9a6b13d6d3d8940abec9ead889c0c605ca340b07bd4",
+      "rpc-block": "9152167324f435586bfb2d297a13c5e4fe19a4ce691492863fa77fe49972ac28",
+      "rpc-raw-bal": "aaafcf5aea6b349a6464dd070c4e308e45fee2797c7be4a70620c218d7c5a2f0",
+      "beacon-block": "632e948dc0122a374af6cef013ff5c594cf407c617be80f22d191ca231cf8e79",
+      "beacon-headers": "80d2291de015859b91c6210bd4e2e7eaba56591230dda2af52bdb2ad9df27384",
+      "beacon-execution_payload_envelopes": "d0f57033233f33ea5c6c8630abe2f59bc5b0be57d7f454168905ab93b8606523"
+    }
+  },
+  "following_blocks_checked": [
+    {
+      "height": 11930001,
+      "hash": "0x81ddfdaea5b6e029c0d14f330c26fe3adac079433c680a3cb7d9b5deecf0d4e5",
+      "blob_gas_used": 2359296
+    },
+    {
+      "height": 11930002,
+      "hash": "0xedc76b35f8f6e49515bfed5f7e40255e71c1898054afc3b4b95ae1d2411f4336",
+      "blob_gas_used": 1572864
+    },
+    {
+      "height": 11930003,
+      "hash": "0x3f4164bf90be199aef790cd8884f0050f22ff72ea749354fcc980fb0611c4065",
+      "blob_gas_used": 1441792
+    },
+    {
+      "height": 11930004,
+      "hash": "0x49441ed5c9f4d065dc4bddb4bc4fc3c5cb739d7ef12432a80b4e0477d5ce2dd8",
+      "blob_gas_used": 524288
+    },
+    {
+      "height": 11930005,
+      "hash": "0xec3541d8b6fa67ba23b1da9069855eccc467818ef149809281579249a7f21afc",
+      "blob_gas_used": 1966080
+    },
+    {
+      "height": 11930006,
+      "hash": "0x685e2fb308b19531737a9e30e08435a0a5e54a5fa6b78d561023a0441ace2dee",
+      "blob_gas_used": 2097152
+    },
+    {
+      "height": 11930007,
+      "hash": "0xc8619c044b3df0aef18d80ab8c9e682224f3fe031005b38539cbb37499eb9d51",
+      "blob_gas_used": 1835008
+    },
+    {
+      "height": 11930008,
+      "hash": "0x13d467779ee1802a4ae43169adb6c13454e0917f65fa50046f5079d126b1fcec",
+      "blob_gas_used": 1441792
+    }
+  ],
+  "probes": [
+    {
+      "name": "canonical-beacon-md",
+      "url": "https://raw.githubusercontent.com/ethpandaops/xatu-data/c0935f0bf5f380575415ef905b4f679d9772961a/schema/canonical_beacon_.md",
+      "status": 200,
+      "content_length": "88138",
+      "bytes_read": 88138
+    },
+    {
+      "name": "canonical-execution-md",
+      "url": "https://raw.githubusercontent.com/ethpandaops/xatu-data/c0935f0bf5f380575415ef905b4f679d9772961a/schema/canonical_execution_.md",
+      "status": 200,
+      "content_length": "64951",
+      "bytes_read": 64951
+    },
+    {
+      "name": "mempool-md",
+      "url": "https://raw.githubusercontent.com/ethpandaops/xatu-data/c0935f0bf5f380575415ef905b4f679d9772961a/schema/mempool_.md",
+      "status": 200,
+      "content_length": "5974",
+      "bytes_read": 5974
+    },
+    {
+      "name": "payload-schema",
+      "url": "https://raw.githubusercontent.com/ethpandaops/xatu-data/c0935f0bf5f380575415ef905b4f679d9772961a/schema/clickhouse/default/libp2p_gossipsub_execution_payload_envelope.sql",
+      "status": 200,
+      "content_length": "3946",
+      "bytes_read": 3946
+    },
+    {
+      "name": "bal-schema",
+      "url": "https://raw.githubusercontent.com/ethpandaops/xatu-data/c0935f0bf5f380575415ef905b4f679d9772961a/schema/clickhouse/default/canonical_beacon_block_access_list.sql",
+      "status": 200,
+      "content_length": "2470",
+      "bytes_read": 2470
+    },
+    {
+      "name": "benchmark-release",
+      "url": "https://api.github.com/repos/ethpandaops/benchmarkoor-tests/releases/tags/eest-payloads-state-actor-v2-amsterdam-stateful-c4a18e34-20261014-021844",
+      "status": 200,
+      "content_length": "12962",
+      "bytes_read": 12962,
+      "assets": [
+        {
+          "name": "download.sh",
+          "bytes": 778,
+          "url": "https://github.com/ethpandaops/benchmarkoor-tests/releases/download/eest-payloads-state-actor-v2-amsterdam-stateful-c4a18e34-20261014-021844/download.sh"
+        },
+        {
+          "name": "eest-payloads-state-actor-v2-amsterdam-stateful-geth.tar.gz",
+          "bytes": 462463301,
+          "url": "https://github.com/ethpandaops/benchmarkoor-tests/releases/download/eest-payloads-state-actor-v2-amsterdam-stateful-c4a18e34-20261014-021844/eest-payloads-state-actor-v2-amsterdam-stateful-geth.tar.gz"
+        },
+        {
+          "name": "eest-payloads-state-actor-v2-amsterdam-stateful-geth.tar.gz.sha256",
+          "bytes": 126,
+          "url": "https://github.com/ethpandaops/benchmarkoor-tests/releases/download/eest-payloads-state-actor-v2-amsterdam-stateful-c4a18e34-20261014-021844/eest-payloads-state-actor-v2-amsterdam-stateful-geth.tar.gz.sha256"
+        },
+        {
+          "name": "manifest.json",
+          "bytes": 2210,
+          "url": "https://github.com/ethpandaops/benchmarkoor-tests/releases/download/eest-payloads-state-actor-v2-amsterdam-stateful-c4a18e34-20261014-021844/manifest.json"
+        },
+        {
+          "name": "SHA256SUMS",
+          "bytes": 126,
+          "url": "https://github.com/ethpandaops/benchmarkoor-tests/releases/download/eest-payloads-state-actor-v2-amsterdam-stateful-c4a18e34-20261014-021844/SHA256SUMS"
+        }
+      ]
+    },
+    {
+      "name": "sepolia-mempool-parquet",
+      "url": "https://data.ethpandaops.io/xatu/sepolia/databases/default/mempool_transaction/2026/10/14.parquet",
+      "status": 206,
+      "content_length": "4",
+      "bytes_read": 4,
+      "magic_hex": "50415231"
+    },
+    {
+      "name": "sepolia-reth-latest",
+      "url": "https://snapshots.ethpandaops.io/sepolia/reth/latest",
+      "status": 200,
+      "content_length": "9",
+      "bytes_read": 9
+    },
+    {
+      "name": "sepolia-erae-checksums",
+      "url": "https://data.ethpandaops.io/erae/sepolia/checksums_sha256.txt",
+      "status": 200,
+      "content_length": "117970",
+      "bytes_read": 117970
+    },
+    {
+      "name": "snapshot-head",
+      "url": "https://snapshots.ethpandaops.io/sepolia/reth/11930000/_snapshot_eth_getBlockByNumber.json",
+      "error": "Unterminated string starting at: line 2438 column 18 (char 196841)",
+      "note": "First read was intentionally capped at 200000 bytes and JSON parsing failed on truncation. A subsequent complete read is recorded separately."
+    },
+    {
+      "name": "snapshot-version",
+      "url": "https://snapshots.ethpandaops.io/sepolia/reth/11930000/_snapshot_web3_clientVersion.json",
+      "method": "GET",
+      "status": 200,
+      "content_length": "94",
+      "content_range": null,
+      "bytes_read": 94,
+      "data": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": "reth/v2.7.0-3d592ec/x86_64-unknown-linux-gnu"
+      }
+    },
+    {
+      "name": "snapshot-archive",
+      "url": "https://snapshots.ethpandaops.io/sepolia/reth/11930000/snapshot.tar.zst",
+      "method": "HEAD",
+      "status": 200,
+      "content_length": "699471472110",
+      "content_range": null,
+      "bytes_read": 0
+    },
+    {
+      "name": "sepolia-bal-parquet",
+      "url": "https://data.ethpandaops.io/xatu/sepolia/databases/default/canonical_beacon_block_access_list/2026/10/14.parquet",
+      "method": "GET",
+      "status": 206,
+      "content_length": "4",
+      "content_range": "bytes 0-3/226610682",
+      "bytes_read": 4,
+      "magic_hex": "50415231"
+    },
+    {
+      "name": "sepolia-bal-summary-parquet",
+      "url": "https://data.ethpandaops.io/xatu/sepolia/databases/default/canonical_beacon_block_access_list_summary/2026/10/14.parquet",
+      "method": "GET",
+      "status": 206,
+      "content_length": "4",
+      "content_range": "bytes 0-3/964005",
+      "bytes_read": 4,
+      "magic_hex": "50415231"
+    },
+    {
+      "name": "release-manifest",
+      "url": "https://github.com/ethpandaops/benchmarkoor-tests/releases/download/eest-payloads-state-actor-v2-amsterdam-stateful-c4a18e34-20261014-021844/manifest.json",
+      "method": "GET",
+      "status": 200,
+      "content_length": "2210",
+      "content_range": null,
+      "bytes_read": 2210,
+      "data": {
+        "schema_version": 3,
+        "tag": "eest-payloads-state-actor-v2-amsterdam-stateful-c4a18e34-20261014-021844",
+        "snapshot": "state-actor/v2",
+        "context": "repricing",
+        "subdir": "state-actor/v2/glamsterdam-devnet-8",
+        "test_type": "stateful",
+        "fork": "amsterdam",
+        "eest_sha": "c4a18e349642958568d15206240892093096af26",
+        "assets": [
+          {
+            "client": "geth",
+            "tarball": "eest-payloads-state-actor-v2-amsterdam-stateful-geth.tar.gz",
+            "sha256": "da51b14ab5814adc2af0ea8f1b59164b63ec27889b85925a00910607ef532096",
+            "files": [
+              "eest-payloads-state-actor-v2-amsterdam-stateful-geth.tar.gz"
+            ],
+            "build": {
+              "snapshot_baseline_fork": "osaka",
+              "seed": 42,
+              "chain_id": 1337,
+              "gas_limit": 1000000000000,
+              "target_size": "350GB",
+              "state_root": "0x3de7c47e447077459c36be878767de7d135f1371924551ac295dd9ab8384c466",
+              "accounts_created": 422456695,
+              "contracts_created": 8640042,
+              "storage_slots": 1879203525,
+              "db_size_bytes": 535730007536,
+              "state_actor_version": "522ab4f",
+              "state_actor_vcs_revision": "522ab4f674a8600a631ec197438a488ab3eef01d",
+              "state_actor_image": "ghcr.io/ethereum/state-actor:main-522ab4f",
+              "state_actor_image_digest": "sha256:58a442494391f7723e21f25dc8601505aaa20d7202b997448982dab86a644a7e",
+              "filler_client": "geth",
+              "filler_image": "ethpandaops/geth:glamsterdam-devnet-8",
+              "eest_sha": "c4a18e349642958568d15206240892093096af26",
+              "eest_repo": null,
+              "filter": "not test_deploy_existing_contracts",
+              "fixtures_filled": 692,
+              "fixtures_failed": 64,
+              "merged_from": null,
+              "fixtures_size_bytes": 1571908843,
+              "gas_benchmark_values": null,
+              "max_gas_per_test": null,
+              "fixed_opcode_count": null,
+              "marker": null,
+              "tests": null,
+              "genesis_eips": null,
+              "prerun_source_release": null,
+              "prerun_payloads": null,
+              "prerun_start_block": null,
+              "prerun_start_hash": null,
+              "prerun_end_block": null,
+              "prerun_end_hash": null,
+              "pytest_passed": 692,
+              "pytest_total": 760
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "snapshot-head-complete",
+      "url": "https://snapshots.ethpandaops.io/sepolia/reth/11930000/_snapshot_eth_getBlockByNumber.json",
+      "status": 200,
+      "bytes_read": 485286,
+      "block": {
+        "number": "0xb60990",
+        "hash": "0x963c8c0acd844a863e678f42084401f747e7d2d1a18697ab3e37ec248d1e458e",
+        "parentHash": "0x9e2b2559dcd2d46f08634e6beb99408b72bd0b6712e35c422fb7f66d7614e8ae",
+        "timestamp": "0x6ad29c68",
+        "stateRoot": "0xe495f6230a9e0578ab1e097cf64edcde196ca20068913ef29590be3df4fae118",
+        "blockAccessListHash": "0x07a27d26295cb63e93398eb312693bd286ac10d8e629d21356345dbe0b20d375",
+        "gasUsed": "0x68182c1",
+        "gasLimit": "0xbebc200"
+      },
+      "transactions": 265
+    },
+    {
+      "name": "rpc-chain",
+      "url": "https://ethereum-sepolia-rpc.publicnode.com",
+      "method": "eth_chainId",
+      "params": [],
+      "status": 200,
+      "result": "0xaa36a7"
+    },
+    {
+      "name": "rpc-block",
+      "url": "https://ethereum-sepolia-rpc.publicnode.com",
+      "method": "eth_getBlockByHash",
+      "params": [
+        "0x963c8c0acd844a863e678f42084401f747e7d2d1a18697ab3e37ec248d1e458e",
+        false
+      ],
+      "status": 200,
+      "block": {
+        "number": "0xb60990",
+        "hash": "0x963c8c0acd844a863e678f42084401f747e7d2d1a18697ab3e37ec248d1e458e",
+        "timestamp": "0x6ad29c68",
+        "blockAccessListHash": "0x07a27d26295cb63e93398eb312693bd286ac10d8e629d21356345dbe0b20d375"
+      }
+    },
+    {
+      "name": "rpc-raw-bal",
+      "url": "https://ethereum-sepolia-rpc.publicnode.com",
+      "method": "eth_getBlockAccessListRaw",
+      "params": [
+        "0x963c8c0acd844a863e678f42084401f747e7d2d1a18697ab3e37ec248d1e458e"
+      ],
+      "status": 200,
+      "result": {
+        "hex_chars": 179742
+      }
+    },
+    {
+      "name": "beacon-envelope",
+      "url": "https://ethereum-sepolia-beacon-api.publicnode.com/eth/v1/beacon/execution_payload_envelope/11371158",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "beacon-block",
+      "url": "https://ethereum-sepolia-beacon-api.publicnode.com/eth/v2/beacon/blocks/11371158",
+      "status": 200,
+      "bytes_read": 5735,
+      "keys": [
+        "version",
+        "execution_optimistic",
+        "finalized",
+        "data"
+      ],
+      "data_keys": [
+        "message",
+        "signature"
+      ],
+      "message_keys": [
+        "slot",
+        "proposer_index",
+        "parent_root",
+        "state_root",
+        "body"
+      ]
+    },
+    {
+      "name": "raw-bal-commitment",
+      "block_hash": "0x963c8c0acd844a863e678f42084401f747e7d2d1a18697ab3e37ec248d1e458e",
+      "bal_bytes": 89870,
+      "bal_accounts": 637,
+      "commitment_matches": true
+    },
+    {
+      "name": "beacon-execution_payload_envelopes",
+      "url": "https://ethereum-sepolia-beacon-api.publicnode.com/eth/v1/beacon/execution_payload_envelopes/11371158",
+      "status": 200,
+      "bytes_read": 479229,
+      "data_keys": [
+        "message",
+        "signature"
+      ]
+    },
+    {
+      "name": "beacon-headers",
+      "url": "https://ethereum-sepolia-beacon-api.publicnode.com/eth/v1/beacon/headers/11371158",
+      "status": 200,
+      "bytes_read": 669,
+      "data_keys": [
+        "root",
+        "canonical",
+        "header"
+      ]
+    },
+    {
+      "name": "beacon-node",
+      "url": "https://ethereum-sepolia-beacon-api.publicnode.com/eth/v1/node/version",
+      "status": 200,
+      "bytes_read": 67,
+      "data_keys": [
+        "version"
+      ]
+    }
+  ],
+  "execution": {
+    "snapshot_downloaded": false,
+    "fixture_tarball_downloaded": false,
+    "parquet_rows_queried": false,
+    "historical_evm_execution": false,
+    "historical_v6_validations": 0,
+    "optimization_bal_hits_measured": 0,
+    "new_validation_latency_samples": 0,
+    "new_memory_measurements": 0
+  },
+  "remaining_requirements": [
+    "Compatible local database with state and committed parent BALs at exact tested hashes.",
+    "Sufficient disk for expanded database and independent treatment copies.",
+    "Complete V6 conversion; blob-bearing samples need matching blobs and cell proofs.",
+    "Enabled/off validation acceptance and root comparison before timing.",
+    "Different same-parent candidates for repeated-submission coverage."
+  ]
+}
