@@ -57,7 +57,7 @@ cold-disk test.
 
 An isolated allocation test now covers the production adapter and shared ETH
 cache across 36 cases. Lazy and eager-parent share decoded BALs rather than
-copying them, but keep them alive after shared-cache eviction: 117,376 bytes
+copying them, but keep them alive after shared-cache eviction: 117,472 bytes
 for the 512-slot fixture. Dropping the validation views released those bytes.
 Disabled and sequential eager-submission retained no payload after eviction.
 The 88-byte parent view exists in all four modes. This isolates payload lifetime

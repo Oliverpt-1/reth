@@ -18,6 +18,13 @@ Disabled and sequential eager-submission kept no payload alive after eviction.
 | 512 | 117,376 | 146,544 | 29,168 | 117,376 / 117,376 |
 | 4096 | 936,008 | 1,165,880 | 229,872 | 936,008 / 936,008 |
 
+The actual ETH-cache insertion was tagged separately in a follow-up round.
+Dropping validation views released another **96 bytes per parent**, the outer
+shared Arc allocation. Total lifetime-extended bytes are therefore 15,526,
+117,472 and 936,104 respectively. Insertion-channel allocations are recorded
+separately and were also released at service shutdown. Both rounds passed all
+36 cases; the saved JSON contains the final round.
+
 Each parent view allocated 88 requested bytes in **all** modes, including
 disabled; this is not an 88-byte incremental cost of enabling BAL. Pinned
 payload bytes scaled linearly with retained parents. Production has one cached
@@ -44,7 +51,8 @@ python3 scripts/record_parent_bal_allocations.py \
   --output docs/benchmarks/archive/flashbots-parent-bal-allocations.json
 ```
 
-Source: `4a0488c3ba`, with the new harness recorded by SHA-256 in the
+Source: `868d8d0c0b` (production code unchanged from `4a0488c3ba`),
+with the updated harness recorded by SHA-256 in the
 [raw results](flashbots-parent-bal-allocations.json). Apple M4 Max, 14 cores,
 36 GB RAM, macOS 15.7.9; rustc 1.98.0 (full compiler identification in the JSON).
 This is a debug integration-test executable with reth-rpc's default features,
@@ -61,7 +69,8 @@ verify ownership; allocation counters verify release after views are dropped.
 The allocator records requested sizes and carries tags across thread boundaries
 so worker-thread frees are counted. Fixture generation, output serialization,
 the test's vectors and weak references are excluded. Raw bytes, decoded trees
-and their inner Arc are counted once. The shared cache's outer Arc/LRU bookkeeping,
+and their inner Arc are counted once. The outer Arc is measured through actual
+cache insertion and its release with validation views. Shared LRU bookkeeping,
 allocator metadata/padding and untagged service-worker allocations are excluded.
 The reported decode peak is for the production-equivalent conversion, not an
 instrumented end-to-end disk fetch. This establishes payload retention and

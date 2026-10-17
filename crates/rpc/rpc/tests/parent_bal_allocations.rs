@@ -36,8 +36,8 @@ static ALLOCATOR: TaggedAllocator = TaggedAllocator;
 thread_local! {
     static TAG: Cell<usize> = const { Cell::new(0) };
 }
-static LIVE: [AtomicUsize; 4] = [const { AtomicUsize::new(0) }; 4];
-static PEAK: [AtomicUsize; 4] = [const { AtomicUsize::new(0) }; 4];
+static LIVE: [AtomicUsize; 5] = [const { AtomicUsize::new(0) }; 5];
+static PEAK: [AtomicUsize; 5] = [const { AtomicUsize::new(0) }; 5];
 
 fn tagged_layout(layout: Layout) -> (Layout, usize) {
     Layout::new::<usize>().extend(layout).unwrap()
@@ -144,7 +144,7 @@ fn allocation_lifetimes() {
                     let raw = alloy_rlp::encode(bal.into_alloy_bal());
                     raw_lengths.push(raw.len());
                     // Same decode/conversion as CachedRevmBal::try_from_raw, with raw
-                    // ownership included. The outer ETH-cache Arc is deliberately untagged.
+                    // ownership included. ETH insertion is tracked separately below.
                     let decode_start = bytes(1);
                     PEAK[1].store(decode_start, Ordering::SeqCst);
                     let decoded = track(1, || {
@@ -160,7 +160,7 @@ fn allocation_lifetimes() {
                     }));
                     let expected = decoded.hash();
                     let hash = B256::from(U256::from(parent + 1));
-                    cache.insert_bal(hash, decoded);
+                    track(4, || cache.insert_bal(hash, decoded));
                     let shared = futures::executor::block_on(cache.get_bal(hash)).unwrap().unwrap();
                     weak.push(Arc::downgrade(shared.as_bal()));
                     drop(shared);
@@ -226,15 +226,19 @@ fn allocation_lifetimes() {
                 );
                 drop(weak);
                 let pinned_after_eviction = bytes(1);
+                let insertion_after_eviction = bytes(4);
                 drop(retained);
+                let outer_arcs_released = insertion_after_eviction - bytes(4);
                 assert_eq!(bytes(1), 0);
                 assert_eq!(bytes(2), 0);
                 let channel_retained = bytes(3);
+                let insertion_channel_retained = bytes(4);
                 drop(loader);
                 drop(asynchronous);
                 drop(cache);
                 runtime.shutdown_timeout(std::time::Duration::from_secs(5));
                 assert_eq!(bytes(3), 0);
+                assert_eq!(bytes(4), 0);
                 println!(
                     "ALLOCATION_RESULT {}",
                     serde_json::json!({
@@ -244,6 +248,8 @@ fn allocation_lifetimes() {
                         "decoded_peak_bytes": PEAK[1].load(Ordering::SeqCst),
                         "validation_retained_bytes": validation_retained,
                         "acquisition_channel_bytes_until_service_shutdown": channel_retained,
+                        "insertion_channel_bytes_until_service_shutdown": insertion_channel_retained,
+                        "shared_outer_arc_bytes_released_with_views": outer_arcs_released,
                         "decoded_pinned_after_shared_eviction": pinned_after_eviction,
                         "decoded_alive_after_shared_eviction": alive,
                         "decoded_bytes_after_release": bytes(1), "validation_bytes_after_release": bytes(2),
