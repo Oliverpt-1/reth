@@ -1,0 +1,95 @@
+{
+  "scope": "Current-machine Flashbots historical backtesting readiness; no historical validation latency benchmark",
+  "checked_at": "2026-10-17",
+  "machine": {
+    "os": "macOS 15.7.9 (24G830), arm64",
+    "cpu": "Apple M4 Max, 14 cores (10 performance, 4 efficiency)",
+    "memory_bytes": 38654705664,
+    "workspace_free_bytes_before_build": 566935683072,
+    "workspace_free_bytes_after_build": 556315873280,
+    "existing_reth_database_found": false,
+    "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18), LLVM 22.1.8",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "clang": "Apple clang 17.0.0"
+  },
+  "reth_build": {
+    "commit": "523afb5cd3a63b5c7403244b145742abeee2d18f",
+    "command": "CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo build --locked --release -p reth --bin reth --no-default-features",
+    "binary_sha256": "83f426c80d438e0654ec9c23e2db122dbfc42e5b24c773b151c7a27313f5ba54",
+    "binary_size_bytes": 68214992,
+    "features": "none (no-default-features)",
+    "build_profile": "release"
+  },
+  "focused_tests": {
+    "command": "cargo test --locked -p reth-rpc parent_bal --lib",
+    "passed": 16,
+    "failed": 0,
+    "ignored": 1,
+    "note": "The ignored test is the explicit MDBX performance test."
+  },
+  "rbuilder": {
+    "repository": "https://github.com/flashbots/rbuilder",
+    "commit": "6037fa728b13bf1806e16fff2586414216f6b8fa",
+    "commit_date": "2026-07-17T14:21:43-03:00",
+    "wiki_repository": "https://github.com/flashbots/rbuilder.wiki",
+    "wiki_commit": "6f377406c636eb31540e60e5549a26e0be171419",
+    "reth_dependency": "v2.2.0",
+    "test_relay_methods": [
+      "flashbots_validateBuilderSubmissionV2",
+      "flashbots_validateBuilderSubmissionV3",
+      "flashbots_validateBuilderSubmissionV4",
+      "flashbots_validateBuilderSubmissionV5"
+    ],
+    "test_relay_has_v6_route": false,
+    "historical_builder_root_hashing": "MockRootHasher is installed by LandedBlockFromDBOrdersSource::create_block_building_context",
+    "historical_builder_output_submit_ready": false,
+    "historical_builder_output_reason": "The standard historical command does not calculate a real state root or produce the complete signed V6 validation request."
+  },
+  "transaction_archive": {
+    "network": "Ethereum mainnet only",
+    "index_url": "https://mempool-dumpster.flashbots.net/index.html",
+    "index_head_status": 200,
+    "index_ranged_get_status": 206,
+    "sample_url": "https://mempool-dumpster.flashbots.net/ethereum/mainnet/2023-09/2023-09-08.parquet",
+    "sample_head_status": 200,
+    "sample_ranged_get_status": 206,
+    "sample_content_length_bytes": 725539573,
+    "latest_listed_month": "2026-10",
+    "latest_listed_day": "2026-10-16",
+    "downloaded_full_parquet": false,
+    "reason_not_downloaded": "Archive access was established, but mainnet has no Amsterdam activation in the checked chain spec, so this data cannot exercise parent BAL."
+  },
+  "fork_compatibility": {
+    "sepolia_amsterdam_timestamp": 1791294816,
+    "sepolia_amsterdam_date": "2026-10-06T12:33:36Z",
+    "mainnet_amsterdam_scheduled": false,
+    "conclusion": "Public mainnet history takes the intentional pre-Amsterdam fallback; Sepolia can have parent BALs but is not supplied by Mempool Dumpster."
+  },
+  "snapshot_registry": {
+    "sepolia": {
+      "command": "target/release/reth download --chain sepolia --list",
+      "available_modular_snapshots": 0
+    },
+    "mainnet": {
+      "command": "target/release/reth download --chain mainnet --list",
+      "smallest_listed_archive_snapshot_date": "2026-10-03",
+      "smallest_listed_archive_snapshot_block": 26112867,
+      "smallest_listed_archive_snapshot_gb": 1693.86,
+      "fits_available_disk": false
+    },
+    "download_started": false
+  },
+  "execution": {
+    "historical_backtest_executed": false,
+    "test_relay_process_executed": false,
+    "candidate_validation_executed": false,
+    "new_latency_samples": 0,
+    "new_bal_hits": 0
+  },
+  "blockers": [
+    "No local Reth database contains post-Amsterdam state and parent BALs.",
+    "The public transaction archive is mainnet-only, while the checked mainnet chain spec has no Amsterdam activation.",
+    "The snapshot registry publishes no Sepolia snapshot; listed mainnet archive snapshots need about 1.7 TB and do not fit.",
+    "The standard historical builder uses MockRootHasher and the public test-relay has no V6 validation route."
+  ]
+}

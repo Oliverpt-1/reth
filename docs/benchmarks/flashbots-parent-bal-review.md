@@ -123,14 +123,16 @@ storage read set despite changing fees/state roots.
 
 ## Public backtesting and test-relay follow-up
 
-**Status: prerequisite checks completed; neither full pipeline was benchmarked.**
-These tools can provide stronger workloads, but the public versions checked are
-not an interchangeable, ready-to-run Amsterdam/V6 replay setup.
+**Status: prerequisite checks completed on two machines; neither full pipeline
+was benchmarked.** These tools can provide stronger workloads, but the public
+versions checked are not an interchangeable, ready-to-run Amsterdam/V6 replay
+setup.
 
 | Route | Checks and observations | Outcome |
 |---|---|---|
-| Historical rbuilder backtesting | Fetched upstream source and inspected its historical-data/state requirements. The archive index and a documented historical Parquet example both returned HTTP 403 from this workspace. No suitable historical chain state is configured; the workspace has about 4.3 GiB free. The default snapshot registry listed no modular Sepolia snapshots. | Blocked before replay. No historical backtest or new latency comparison ran. The registry/access results do not imply that datasets or snapshots are unavailable elsewhere. |
-| Public rbuilder/test-relay | Checked upstream commit `6037fa728b13bf1806e16fff2586414216f6b8fa`: RETH dependency 2.2.0; test-relay dispatches only V2–V5. Downloaded and checksum-verified public rbuilder v1.3.15; attempted startup on a copied dev database, which stopped at the missing local consensus-client connection. | A compatible V6 builder/relay and payload context are required. The upstream test-relay process was not run; this is not an end-to-end relay benchmark. |
+| Historical rbuilder backtesting | Rechecked official rbuilder commit `6037fa728b13bf1806e16fff2586414216f6b8fa` and wiki commit `6f377406c636eb31540e60e5549a26e0be171419`. This Mac can access Mempool Dumpster: index/sample HEAD returned 200 and ranged GET returned 206. The archive is mainnet-only. Mainnet has no Amsterdam activation in the checked chain spec, while Sepolia activated at timestamp `1791294816`. The historical builder explicitly installs `MockRootHasher`, so its normal output has no validation-grade state root. | Archive access passed, but replay would take the pre-Amsterdam fallback and would not test parent BAL. No candidate was built or timed. Producing submit-ready V6 payloads requires a real root hasher, auxiliary V6 fields and post-Amsterdam state/BALs. |
+| Historical state | No RETH database was found on this Mac. The exact branch binary found no published modular Sepolia snapshot. Listed mainnet archive snapshots are about 1.694–1.700 TB; this machine had 528 GiB free before the build. | No download started: Sepolia state was unavailable from this registry, and mainnet state neither fits nor supplies BAL-era parents. |
+| Public rbuilder/test-relay | The current source still dispatches only V2–V5. The earlier cloud check downloaded and checksum-verified rbuilder v1.3.15 and reached the missing consensus-client prerequisite; it did not run the relay. | A V6-capable builder/relay and payload context are still required. This remains a compatibility check, not a relay benchmark. |
 
 **Actual-node compatibility probe:** generated one Amsterdam child on the existing
 local RETH build. V6 accepted it and served 64 slots from BAL with zero provider
@@ -139,16 +141,21 @@ state reads. This confirms the protocol mismatch rather than measuring a relay
 performance improvement. Neither a missing-BAL fallback run nor an early failure
 is counted as successful testing of BAL latency.
 
-[Recorded source versions, HTTP results, startup error and actual-node responses](archive/flashbots-public-tooling-readiness.json)
+[The current Mac readiness record](archive/flashbots-historical-readiness-macos.json),
+[the earlier cloud/source probe](archive/flashbots-public-tooling-readiness.json)
 and [the reproducible source/API probe](../../scripts/probe_flashbots_public_tooling.py)
-make the completed checks and blocked work explicit. Earlier synthetic latency
-findings remain unchanged; these attempts add **zero new latency samples**.
+make the completed checks and blocked work explicit. The requested no-default
+feature RETH binary was built at commit `523afb5cd3` with Rust 1.98.0; its SHA-256
+is `83f426c80d438e0654ec9c23e2db122dbfc42e5b24c773b151c7a27313f5ba54`.
+All 16 focused parent-BAL tests passed. Earlier synthetic latency findings remain
+unchanged; these attempts add **zero new latency samples**.
 
-Next steps for these routes are obtaining historical state and archive access,
-and porting or selecting a V6-capable builder/test-relay. Then run the same
-enabled/off comparison with real candidate variation. Existing backtest tools
-build candidate blocks; their default builder timings do not automatically
-measure this Flashbots validation adapter.
+Next steps require a post-Amsterdam RETH database with retained parent BALs and
+matching realistic orderflow (for example Sepolia orderflow from another source),
+plus a historical builder path that computes real roots and emits complete V6
+submissions. Then run the same enabled/off comparison with real candidate
+variation. Existing default backtest builder timings neither produce a complete
+validation payload nor measure this Flashbots validation adapter.
 
 ## Remaining gaps
 
