@@ -1,0 +1,72 @@
+{
+  "scope": "Source/readiness inspection and real-node protocol probe; no historical or relay performance benchmark",
+  "upstream_commit": "6037fa728b13bf1806e16fff2586414216f6b8fa",
+  "upstream_reth_dependency": {
+    "git": "https://github.com/paradigmxyz/reth",
+    "tag": "v2.2.0"
+  },
+  "test_relay_methods": [
+    "flashbots_validateBuilderSubmissionV2",
+    "flashbots_validateBuilderSubmissionV3",
+    "flashbots_validateBuilderSubmissionV4",
+    "flashbots_validateBuilderSubmissionV5"
+  ],
+  "upstream_test_relay_has_v6_route": false,
+  "upstream_source": "https://github.com/flashbots/rbuilder/blob/6037fa728b13bf1806e16fff2586414216f6b8fa/crates/test-relay/src/validation_api_client.rs",
+  "archive_access": [
+    {
+      "url": "https://mempool-dumpster.flashbots.net/index.html",
+      "http_status": 403
+    },
+    {
+      "url": "https://mempool-dumpster.flashbots.net/ethereum/mainnet/2023-09/2023-09-08.parquet",
+      "http_status": 403
+    }
+  ],
+  "workspace_free_bytes": 4598382592,
+  "upstream_backtest_executed": false,
+  "upstream_test_relay_process_executed": false,
+  "new_latency_samples": 0,
+  "binary_version": "Reth Version: 2.7.0\nCommit SHA: 353e99a26d8851e93694a693b0ce040dca5858db\nBuild Timestamp: 2026-10-12T23:06:53.025885659Z\nBuild Features:\nBuild Profile: release\n",
+  "parent_hash": "0x55bca9b3752ebc8da7e0f907783a138d63040aef9c0cb99fbe471b1fee07dcd9",
+  "child_hash": "0x9610eb684ea22d25c59ae549bc103984c38b1b997b9ae8966c76ef680e512e88",
+  "child_state_root": "0x065a745c6cda6e9f836f8731a1542736c6d71f5fd4362bf30178f771e0bac667",
+  "responses": {
+    "6": {
+      "result": null
+    },
+    "5": {
+      "error": "flashbots_validateBuilderSubmissionV5: {'code': -32602, 'message': 'block hash mismatch: want 0x67ae4c02d1bafe693cd2c1e2ab217ca94d646efd80dc5d628e3e99b6e5e62ef9, got 0x9610eb684ea22d25c59ae549bc103984c38b1b997b9ae8966c76ef680e512e88'}"
+    }
+  },
+  "read_counts": {
+    "6": {
+      "bal_slots": 64.0,
+      "provider_slots": 0,
+      "provider_accounts": 9.0
+    },
+    "5": {
+      "bal_slots": 0.0,
+      "provider_slots": 0,
+      "provider_accounts": 0.0
+    }
+  },
+  "release_probe": {
+    "tag": "v1.3.15",
+    "binary_url": "https://github.com/flashbots/rbuilder/releases/download/v1.3.15/rbuilder-v1.3.15-x86_64-unknown-linux-gnu",
+    "binary_sha256": "afdec28e89c8754690dcd882d1117d4259ae77cde7bbe1ff478ca21509c6df93",
+    "checksum_verified_against_release_file": true,
+    "version_output": "version:    v1.3.15\ncommit:     aac78a7\ndirty:      false\nbranch:     \nbuild_time: Sun, 27 Oct 2024 03:33:20 +0000\nrustc:      rustc 1.95.0 (59807616e 2026-04-14)\nfeatures:   [\"JEMALLOC_UNPREFIXED\"]\nprofile:    release\n",
+    "launch_scope": "Attempted public builder startup using a copied local dev database, no enabled external relays, no live consensus client. Not a backtest or test-relay launch.",
+    "launch_outcome": "Error: could not send request: error sending request for url (http://127.0.0.1:9/eth/v1/config/spec): error trying to connect: tcp connect error: Connection refused (os error 111)\n\nCaused by:\n   0: error sending request for url (http://127.0.0.1:9/eth/v1/config/spec): error trying to connect: tcp connect error: Connection refused (os error 111)\n   1: error trying to connect: tcp connect error: Connection refused (os error 111)\n   2: tcp connect error: Connection refused (os error 111)\n   3: Connection refused (os error 111)\n\nLocation:\n    crates/rbuilder/src/live_builder/config.rs:916:28\n"
+  },
+  "snapshot_lookup": {
+    "command": "target/release/reth download --chain sepolia --list",
+    "outcome": "Available snapshots for chain 11155111 (https://snapshots.reth.rs):\n\nDATE               BLOCK  PROFILE           SIZE  MANIFEST URL\n----------------------------------------------------------------------------------------------------\n  (no modular snapshots found)\n\nTo download a specific snapshot, copy its manifest URL and run:\n  reth download --manifest-url <URL>\n"
+  },
+  "readiness_verdict": {
+    "historical_backtesting": "blocked: archive HTTP 403 from this workspace; suitable historical state is not configured; workspace has about 4.3 GiB free",
+    "public_test_relay": "blocked as-is: checked source routes V2 through V5, no V6 route; matching V6-capable builder/relay and consensus/payload context required",
+    "performance_conclusion": "No new historical-data or builder/test-relay latency benchmark completed. Existing synthetic benchmark conclusion is unchanged."
+  }
+}

@@ -121,6 +121,35 @@ storage read set despite changing fees/state roots.
 - Measured node RSS and shared BAL-cache bytes; incremental memory held by
   validation's per-parent reference was not isolated.
 
+## Public backtesting and test-relay follow-up
+
+**Status: prerequisite checks completed; neither full pipeline was benchmarked.**
+These tools can provide stronger workloads, but the public versions checked are
+not an interchangeable, ready-to-run Amsterdam/V6 replay setup.
+
+| Route | Checks and observations | Outcome |
+|---|---|---|
+| Historical rbuilder backtesting | Fetched upstream source and inspected its historical-data/state requirements. The archive index and a documented historical Parquet example both returned HTTP 403 from this workspace. No suitable historical chain state is configured; the workspace has about 4.3 GiB free. The default snapshot registry listed no modular Sepolia snapshots. | Blocked before replay. No historical backtest or new latency comparison ran. The registry/access results do not imply that datasets or snapshots are unavailable elsewhere. |
+| Public rbuilder/test-relay | Checked upstream commit `6037fa728b13bf1806e16fff2586414216f6b8fa`: RETH dependency 2.2.0; test-relay dispatches only V2–V5. Downloaded and checksum-verified public rbuilder v1.3.15; attempted startup on a copied dev database, which stopped at the missing local consensus-client connection. | A compatible V6 builder/relay and payload context are required. The upstream test-relay process was not run; this is not an end-to-end relay benchmark. |
+
+**Actual-node compatibility probe:** generated one Amsterdam child on the existing
+local RETH build. V6 accepted it and served 64 slots from BAL with zero provider
+slot calls. Invoking V5 with that payload failed with a block-hash mismatch before
+state reads. This confirms the protocol mismatch rather than measuring a relay
+performance improvement. Neither a missing-BAL fallback run nor an early failure
+is counted as successful testing of BAL latency.
+
+[Recorded source versions, HTTP results, startup error and actual-node responses](archive/flashbots-public-tooling-readiness.json)
+and [the reproducible source/API probe](../../scripts/probe_flashbots_public_tooling.py)
+make the completed checks and blocked work explicit. Earlier synthetic latency
+findings remain unchanged; these attempts add **zero new latency samples**.
+
+Next steps for these routes are obtaining historical state and archive access,
+and porting or selecting a V6-capable builder/test-relay. Then run the same
+enabled/off comparison with real candidate variation. Existing backtest tools
+build candidate blocks; their default builder timings do not automatically
+measure this Flashbots validation adapter.
+
 ## Remaining gaps
 
 Live-node reorg validation, isolated incremental memory, production submission
