@@ -85,6 +85,12 @@ def main():
                 }
             rows.append({**{k: run[k] for k in ['group', 'mode', 'overlap', 'condition', 'reversed']},
                          'phase': request['phase'], 'stages': stages,
+                         'whole_request_read_bytes': request['after']['read_bytes']-request['before']['read_bytes'],
+                         'whole_request_major_faults': request['after']['major_faults']-request['before']['major_faults'],
+                         'unassigned_read_bytes': request['after']['read_bytes']-request['before']['read_bytes']
+                            - sum(s['read_bytes'] for s in stages.values()),
+                         'unassigned_major_faults': request['after']['major_faults']-request['before']['major_faults']
+                            - sum(s['major_faults'] for s in stages.values()),
                          'metrics_delta': request['metrics_delta']})
     pairs = []
     by_key = {(r['group'], r['overlap'], r['condition'], r['reversed'], r['phase'], r['mode']): r for r in rows}
@@ -119,8 +125,9 @@ def main():
                                                         'guest_device_read_bytes','snapshot_overhead_ms',
                                                         'database_fault_events','database_major_fault_events',
                                                         'database_cache_insertions','other_file_major_faults']}})
-    args.output.write_text(json.dumps({'source': str(args.input), 'rows': rows,
-                                      'paired_offsets': pairs, 'summary': summary}, indent=2)+'\n')
+    encoded = (json.dumps({'source': str(args.input), 'rows': rows,
+                           'paired_offsets': pairs, 'summary': summary}, indent=2)+'\n').encode()
+    args.output.write_bytes(gzip.compress(encoded, mtime=0) if args.output.suffix == '.gz' else encoded)
 
 
 if __name__ == '__main__':

@@ -88,6 +88,15 @@ Execution improved, but overall disk reads were unchanged and the latency
 difference was uncertain. Eager-parent improved one partial-overlap comparison;
 eager modes were slower at zero overlap. There was no consistent overall speedup.
 
+Stage-level instrumentation explains the unchanged I/O. Across eight parents
+and both treatment orders, each fully covered cold lazy request moved **92–96
+identical 4 KiB MDBX pages** from transaction execution to state-root
+calculation. The combined page-offset set, 1,785,856 read bytes and 436 major
+faults were unchanged. Zero-overlap, additional-access and warm controls also
+matched as expected. BAL made execution faster, but root calculation still
+needed the same database pages. These are intrusive diagnostic timings, not a
+replacement for the latency results above.
+
 The allocation-lifetime and guest cold-read measurements are complete for these
 fixtures. The Mac can cache the VM's disk, so this does not prove physical SSD
 misses. The detailed report includes p95, parent-level uncertainty, all modes,
@@ -134,6 +143,9 @@ generated fork, not every reorg depth, finality or concurrent-request scenario.
 - [Disk-read methodology and results](archive/flashbots-parent-bal-disk-study.md),
   [summary](archive/flashbots-parent-bal-disk-summary.json) and
   [compressed raw measurements](archive/flashbots-parent-bal-disk-results.json.gz)
+- [Stage I/O and page-offset attribution](archive/flashbots-parent-bal-io-study.md),
+  [parsed attribution](archive/flashbots-parent-bal-io-attribution.json.gz) and
+  [raw diagnostic records](archive/flashbots-parent-bal-io-results.json.gz)
 - [Full methodology, mode comparisons and confidence intervals](archive/flashbots-parent-bal-eager.md)
 - [Saved benchmark results](archive/flashbots-parent-bal-lazy-primary-results.json)
   and [individual paired measurements](archive/flashbots-parent-bal-lazy-primary-pairs.csv)
