@@ -195,10 +195,11 @@ def rejection(nodes, request):
     return errors[0]
 
 
-def start_node(binary, directory, port, enabled, producer, slots, optimization, bal_mode, bal_cache):
+def start_node(binary, directory, port, enabled, producer, slots, optimization, bal_mode, bal_cache,
+               *, genesis_override=None):
     directory.mkdir()
     genesis = directory/'genesis.json'
-    genesis.write_text(json.dumps(base.genesis(slots)))
+    genesis.write_text(json.dumps(base.genesis(slots) if genesis_override is None else genesis_override))
     # Ephemeral authentication only for these isolated test nodes. Never print the key/token.
     jwt = os.urandom(32)
     jwt_path = directory/'jwt.hex'
