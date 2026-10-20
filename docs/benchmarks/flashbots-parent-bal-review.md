@@ -14,8 +14,8 @@ writes took precedence, and all existing validation checks stayed enabled.
   some or none of the slots their parent wrote. State-root result caching was off.
 - Memory ownership, controlled disk reads and validation across two-block reorgs.
 
-These used generated transactions and local databases, not historical Sepolia
-submissions.
+Note: These used generated transactions, local databases, and test scripts. Ideally would
+like to test this using an actual Sepolia replay of some kind.
 
 ## Results
 
