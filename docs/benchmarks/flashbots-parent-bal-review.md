@@ -1,155 +1,77 @@
 # Parent BAL validation: local findings
 
-I tested using the parent's BAL during Flashbots validation. It reduced reads
-from the state provider, and results and state roots matched in the cases tested.
-I haven't found a consistent improvement in validation time.
-
-The tests use generated Amsterdam chains. Follow-up runs measured verified
-Linux guest disk reads and checked validation across canonical-chain reorgs.
-These are not historical Sepolia or production results.
+I tested using the parent's BAL to supply starting values during Flashbots
+validation, with database fallback for anything it did not contain. The child's
+writes took precedence, and all existing validation checks stayed enabled.
 
 ## What I tested
 
-- **Correctness:** controlled account and storage fixtures, with real EVM
-  execution and calculated state roots. Cases included missing BALs, partial
-  account fields, code changes, creation/deletion, storage clears, provider
-  fallback and child writes overriding parent values.
-- **Performance:** actual Reth nodes with MDBX databases and Flashbots validation
-  RPC calls. A script created a private Amsterdam chain and signed transactions
-  calling a contract that updates 64 or 512 storage slots. These were generated
-  transactions, not historical submissions. Nodes ran in a two-core, 8 GiB
-  container.
+- Correctness fixtures covering missing BALs, partial account fields, code
+  changes, account creation/deletion, cleared storage and child writes.
+- Actual Reth nodes on generated Amsterdam chains, comparing BAL disabled,
+  lazy loading, loading once upfront per parent and loading on every submission.
+  Requests covered first and repeated submissions, plus children accessing all,
+  some or none of the slots their parent wrote. State-root result caching was off.
+- Memory ownership, controlled disk reads and validation across two-block reorgs.
 
-I compared the existing path with lazy BAL loading, loading upfront once per
-parent, and loading upfront on every submission. Tests covered first and
-repeated submissions, children accessing the parent's written slots or different
-slots, and reversed node roles. State-root result caching was disabled.
+These used generated transactions and local databases, not historical Sepolia
+submissions.
 
-## What I found
+## Results
 
-### Earlier warm-node tests
+**Correctness:** Results and state roots matched with BAL enabled and disabled
+in the tested cases. BAL hits, database fallback and child-write checks passed.
+The disk-read benchmark completed 1,152 successful validations. Across 32 reorgs,
+160 valid submissions passed and 80 incorrect roots were rejected. Another 160
+requests for unavailable noncanonical parents returned the same error in every
+mode; those were rejection checks, not successful executions.
 
-One example: 512 slots, with the child accessing the slots its parent wrote,
-using the normal decoded BAL cache. These are separate medians from the primary
-lazy-loading run.
+**Provider calls and validation time:** Below are disabled/lazy medians with
+full overlap between the child's reads and the parent's writes.
 
-| Measurement | First submission: disabled / lazy | Repeated submission: disabled / lazy |
+| Measurement | Warm database, 512 slots | Cold database, 64 slots |
 |---|---:|---:|
-| Provider storage calls | 512 / 0 | 0 / 0 |
-| Provider account calls | 9 / 9 | 0 / 0 |
-| BAL acquisition time | 0 / 117.2 µs | 0 / 0 µs |
-| Raw BAL fetch and decode | Both zero: decoded BAL already cached | Both zero |
-| Validation time | 8.271 / 8.309 ms | 4.063 / 3.912 ms |
+| First submission: provider storage calls | 512 / 0 | 64 / 0 |
+| First submission: validation time | 8.271 / 8.309 ms | 26.429 / 26.355 ms |
+| Repeat: provider storage calls | 0 / 0 | 0 / 0 |
+| First submission: disk-read bytes | Not measured in this run | 1,785,856 / 1,785,856 |
 
-The lower repeated-request time did not reproduce with statistical confidence
-when node roles were reversed. Neither lazy loading nor loading upfront once
-per parent showed a consistent speedup. Loading on every submission made repeats
-slower in both normal-cache runs at 512 slots.
+There was no consistent overall speedup. Loading BAL on every submission added
+repeat-request overhead. When the BAL had no value for a slot the child accessed,
+it still needed the provider. Repeats already benefited from CachedReads with
+BAL disabled.
 
-When children accessed different slots from the parent's writes, storage calls
-were unchanged. On repeats, the existing CachedReads cache already removed EVM
-provider calls in both modes. Repeats changed fees and roots but largely reused
-the same storage accesses. These counters measure provider calls, not physical
-disk reads, and BAL does not remove state-root calculation.
+**Why disk reads stayed the same:** Without BAL, execution loaded database pages
+into memory and state-root calculation reused them. With BAL, execution skipped
+some reads, but root calculation loaded those pages later. A separate 384-request
+diagnostic run confirmed that 92–96 identical database pages moved between these
+stages in each fully overlapping cold pair. Both modes still calculated and
+checked the child's state root.
 
-With the decoded BAL cache disabled, first lazy acquisition took 452.4 µs in the
-512-slot case. Separate fetch/decode medians were 12.0/177.4 µs; component medians
-are not additive. State and raw BAL bytes remained warm, so this was not a
-cold-disk test.
+**BAL loading cost:** In the warm 512-slot run, getting an already decoded BAL
+took 117.2 µs. With the decoded cache disabled, acquisition took 452.4 µs;
+separately measured fetch/decode medians were 12.0/177.4 µs. These component
+medians do not add up to total acquisition time. Raw BAL bytes were still warm.
 
-An isolated allocation test now covers the production adapter and shared ETH
-cache across 36 cases. Lazy and eager-parent share decoded BALs rather than
-copying them, but keep them alive after shared-cache eviction: 117,472 bytes
-for the 512-slot fixture. Dropping the validation views released those bytes.
-Disabled and sequential eager-submission retained no payload after eviction.
-The 88-byte parent view exists in all four modes. This isolates payload lifetime
-and caller allocations; it does not establish a whole-node memory saving.
+**Memory:** Across 36 allocation cases, lazy and once-per-parent loading shared
+the decoded BAL rather than copying it. They kept 117,472 bytes alive for the
+512-slot fixture after the shared cache evicted it. Dropping the validation
+views released that memory.
 
-### Verified disk-read tests
+## Acceptance criteria and scope
 
-All **1,152 validations passed**, across eight parents, four modes, full/partial/
-zero overlap and reversed treatment order. Candidates contained different signed
-transactions accessing additional slots; exact repeats were measured separately.
-Root-result caching was disabled and all computed roots matched the requests.
+All three requested categories have local evidence: matching results and roots,
+hit/fallback/child-write regressions, and before/after measurements of provider
+calls, BAL loading, memory and first/repeated validation time.
 
-All cold first requests and new-access siblings recorded process reads, major
-faults and guest disk reads. Warm requests and exact repeats recorded none.
-With full overlap, disabled/lazy first-request medians were:
+Historical Sepolia state and competing submissions remain untested. Disk
+measurements above are Linux VM reads, not verified physical host SSD misses;
+reorg coverage is limited to the generated two-block forks.
 
-| Measurement | Disabled | Lazy |
-|---|---:|---:|
-| Provider storage calls / BAL hits | 64 / 0 | 0 / 64 |
-| Execution | 6.101 ms | 0.654 ms |
-| State-root calculation | 19.294 ms | 24.591 ms |
-| Total validation | 26.429 ms | 26.355 ms |
-| Process disk-read bytes | 1,785,856 | 1,785,856 |
+## Detailed evidence
 
-Execution improved, but overall disk reads were unchanged and the latency
-difference was uncertain. Eager-parent improved one partial-overlap comparison;
-eager modes were slower at zero overlap. There was no consistent overall speedup.
-
-Stage-level instrumentation explains the unchanged I/O. Across eight parents
-and both treatment orders, each fully covered cold lazy request moved **92–96
-identical 4 KiB MDBX pages** from transaction execution to state-root
-calculation. The combined page-offset set, 1,785,856 read bytes and 436 major
-faults were unchanged. Zero-overlap, additional-access and warm controls also
-matched as expected. BAL made execution faster, but root calculation still
-needed the same database pages. These are intrusive diagnostic timings, not a
-replacement for the latency results above.
-
-The allocation-lifetime and guest cold-read measurements are complete for these
-fixtures. The Mac can cache the VM's disk, so this does not prove physical SSD
-misses. The detailed report includes p95, parent-level uncertainty, all modes,
-fetch/decode costs and RSS; RSS alone is not the memory-isolation result.
-
-### Reorg validation
-
-I also ran an actual-node reorg regression across all four modes, with the decoded
-BAL cache enabled and disabled. Two forks wrote different values at the same
-heights. Across 32 two-block chain switches, all **160 valid submissions** passed
-their root checks, all **80 deliberately wrong roots** were rejected, and BAL
-hits/provider fallback matched expectations. Responses matched the disabled path.
-
-The existing provider does not expose these parents while they are noncanonical.
-All modes returned the same `parent block not found` error for **160** such
-requests. Those are rejection checks, not successful noncanonical root checks.
-Switching each fork back to canonical restored successful validation with its
-own values. This is generated-chain correctness evidence, not another timing run.
-
-## Coverage against the acceptance criteria
-
-| Criterion | Evidence and scope |
-|---|---|
-| Matching results and roots, including missing/partial BAL data, code changes, cleared slots and reorgs | Enabled/off execution fixtures cover the account/storage cases. Actual-node validation checks claimed roots. The new reorg test covers successful validation before/after canonical switches and identical rejection of unavailable noncanonical parents. |
-| BAL hits, provider fallback and no stale values after child writes | Counter assertions and child-write/storage-clear regressions passed. Reorg runs also verified per-fork values, BAL commitments, CachedReads repeats and fallback for additional slots. |
-| Before/after provider reads, BAL fetch/decode, memory and first/repeated latency | Warm-node comparisons, 1,152 guest disk-read validations and 36 allocation/lifetime cases provide these measurements. They cover generated workloads; there is no consistent overall speedup claim. |
-
-[Detailed test mapping and reorg evidence](archive/flashbots-parent-bal-reorg-study.md).
-
-## Remaining limits
-
-Generated siblings establish behavior with additional storage accesses, not
-representative competing bids. Historical replay, production performance and
-physical host SSD misses remain untested. The reorg test covers a two-block
-generated fork, not every reorg depth, finality or concurrent-request scenario.
-
-## Supporting results
-
-- [Reorg test and acceptance-criteria mapping](archive/flashbots-parent-bal-reorg-study.md),
-  [summary](archive/flashbots-parent-bal-reorg-summary.json) and
-  [raw checks](archive/flashbots-parent-bal-reorg-results.json.gz)
-- [Isolated allocations, ownership and limits](archive/flashbots-parent-bal-allocation-study.md)
-  and [raw allocation measurements](archive/flashbots-parent-bal-allocations.json)
-- [Disk-read methodology and results](archive/flashbots-parent-bal-disk-study.md),
-  [summary](archive/flashbots-parent-bal-disk-summary.json) and
-  [compressed raw measurements](archive/flashbots-parent-bal-disk-results.json.gz)
-- [Stage I/O and page-offset attribution](archive/flashbots-parent-bal-io-study.md),
-  [parsed attribution](archive/flashbots-parent-bal-io-attribution.json.gz) and
-  [raw diagnostic records](archive/flashbots-parent-bal-io-results.json.gz)
-- [Full methodology, mode comparisons and confidence intervals](archive/flashbots-parent-bal-eager.md)
-- [Saved benchmark results](archive/flashbots-parent-bal-lazy-primary-results.json)
-  and [individual paired measurements](archive/flashbots-parent-bal-lazy-primary-pairs.csv)
-- [Correctness tests](../../crates/rpc/rpc/src/validation/parent_bal.rs)
-  and [node benchmark script](../../scripts/bench_flashbots_parent_bal_paired.py)
-- [Public data checks](archive/flashbots-parent-bal-data-sources.md)
-  and [storage requirements](archive/flashbots-parent-bal-storage-blocker.md)
+- [Correctness, reorgs and acceptance-criteria mapping](archive/flashbots-parent-bal-reorg-study.md)
+- [Latency comparisons and BAL loading costs](archive/flashbots-parent-bal-eager.md)
+- [Disk-read benchmark](archive/flashbots-parent-bal-disk-study.md)
+- [Stage-by-stage database page tracing](archive/flashbots-parent-bal-io-study.md)
+- [Memory measurements](archive/flashbots-parent-bal-allocation-study.md)
