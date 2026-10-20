@@ -53,6 +53,7 @@ use tokio::sync::{oneshot, RwLock};
 use tracing::warn;
 
 mod blob_cache;
+mod io_diagnostic;
 mod parent_bal;
 mod state_root_cache;
 
@@ -254,6 +255,8 @@ where
         registered_gas_limit: u64,
         decoded_bal: Option<DecodedBal>,
     ) -> Result<(), ValidationApiError> {
+        let diagnostic = io_diagnostic::Diagnostic::new();
+        io_diagnostic::mark(&diagnostic, "validation_start");
         let stage_start = Instant::now();
         self.validate_message_against_header(block.sealed_header(), &message)?;
 
@@ -343,6 +346,7 @@ where
         let evm_config = self.evm_config.clone();
         let execution_block = block.clone();
         let validation_inner = self.inner.clone();
+        let execution_diagnostic = diagnostic.clone();
 
         let needs_bal_worker =
             self.parent_bal_loader_waits && loader.is_some() && !parent_bal.is_resolved();
@@ -357,7 +361,9 @@ where
             };
             let cached_db = request_cache.as_db_mut(parent_db);
             let mut executor = evm_config.batch_executor(cached_db);
+            io_diagnostic::mark(&execution_diagnostic, "execution_start");
             let result = executor.execute_one(&execution_block)?;
+            io_diagnostic::mark(&execution_diagnostic, "execution_end");
             validation_inner
                 .metrics
                 .stage_execution_seconds
@@ -422,6 +428,7 @@ where
 
         let stage_start = Instant::now();
         let hashed_state = state_provider.hashed_post_state(&output.state)?;
+        io_diagnostic::mark(&diagnostic, "root_start");
         let state_root = if let Some(cache) = &self.state_root_cache {
             let (root, hit) = cache
                 .root(parent_header_hash, hashed_state, |state| state_provider.state_root(state))?;
@@ -434,6 +441,7 @@ where
         } else {
             state_provider.state_root(hashed_state)?
         };
+        io_diagnostic::mark(&diagnostic, "root_end");
         self.metrics.stage_state_root_seconds.record(stage_start.elapsed().as_secs_f64());
 
         if state_root != block.header().state_root() {
@@ -443,6 +451,7 @@ where
             .into())
         }
 
+        io_diagnostic::emit(&diagnostic, block.hash(), state_root);
         Ok(())
     }
 

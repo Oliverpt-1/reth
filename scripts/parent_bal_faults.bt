@@ -1,0 +1,21 @@
+// Arguments: node PID, MDBX inode, kernel dev_t (major << 20 | minor).
+// F = filemap fault completion; C = page-cache insertion, not completed I/O.
+kprobe:filemap_fault /pid == $1/ {
+    $v = (struct vm_fault *)arg0;
+    $f = (struct file *)$v->vma->vm_file;
+    @start[tid] = nsecs;
+    @ino[tid] = $f->f_inode->i_ino;
+    @dev[tid] = $f->f_inode->i_sb->s_dev;
+    @offset[tid] = $v->pgoff * 4096;
+}
+kretprobe:filemap_fault /@start[tid]/ {
+    printf("F %llu %llu %d %d %llu %llu %llu %llu\n",
+        @start[tid], nsecs, pid, tid, @dev[tid], @ino[tid], @offset[tid], retval);
+    delete(@start[tid]); delete(@ino[tid]); delete(@dev[tid]); delete(@offset[tid]);
+}
+tracepoint:filemap:mm_filemap_add_to_page_cache
+/args->i_ino == $2 && args->s_dev == $3/ {
+    printf("C %llu %d %d %u %lu %lu %u\n",
+        nsecs, pid, tid, args->s_dev, args->i_ino, args->index * 4096, args->order);
+}
+BEGIN { printf("READY\n"); }
