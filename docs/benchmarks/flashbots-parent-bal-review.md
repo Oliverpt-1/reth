@@ -4,9 +4,8 @@ I tested using the parent's BAL during Flashbots validation. It reduced reads
 from the state provider, and results and state roots matched in the cases tested.
 I haven't found a consistent improvement in validation time.
 
-The tests so far used a small synthetic chain with
-mostly cached data, so they don't tell us whether avoiding more expensive reads
-would make the extra BAL work worthwhile.
+The tests use generated Amsterdam chains. The latest run also measured verified
+Linux guest disk reads. These are not historical Sepolia or production results.
 
 ## What I tested
 
@@ -26,6 +25,8 @@ repeated submissions, children accessing the parent's written slots or different
 slots, and reversed node roles. State-root result caching was disabled.
 
 ## What I found
+
+### Earlier warm-node tests
 
 One example: 512 slots, with the child accessing the slots its parent wrote,
 using the normal decoded BAL cache. These are separate medians from the primary
@@ -63,16 +64,47 @@ Disabled and sequential eager-submission retained no payload after eviction.
 The 88-byte parent view exists in all four modes. This isolates payload lifetime
 and caller allocations; it does not establish a whole-node memory saving.
 
-## What I'd test next
+### Verified disk-read tests
 
-The next comparison should use a larger state database and realistic
-transactions, including different candidates for the same parent. The question
-is whether BAL avoids expensive reads often enough to offset its own overhead.
+All **1,152 validations passed**, across eight parents, four modes, full/partial/
+zero overlap and reversed treatment order. Candidates contained different signed
+transactions accessing additional slots; exact repeats were measured separately.
+Root-result caching was disabled and all computed roots matched the requests.
+
+All cold first requests and new-access siblings recorded process reads, major
+faults and guest disk reads. Warm requests and exact repeats recorded none.
+With full overlap, disabled/lazy first-request medians were:
+
+| Measurement | Disabled | Lazy |
+|---|---:|---:|
+| Provider storage calls / BAL hits | 64 / 0 | 0 / 64 |
+| Execution | 6.101 ms | 0.654 ms |
+| State-root calculation | 19.294 ms | 24.591 ms |
+| Total validation | 26.429 ms | 26.355 ms |
+| Process disk-read bytes | 1,785,856 | 1,785,856 |
+
+Execution improved, but overall disk reads were unchanged and the latency
+difference was uncertain. Eager-parent improved one partial-overlap comparison;
+eager modes were slower at zero overlap. There was no consistent overall speedup.
+
+The allocation-lifetime and guest cold-read measurements are complete for these
+fixtures. The Mac can cache the VM's disk, so this does not prove physical SSD
+misses. The detailed report includes p95, parent-level uncertainty, all modes,
+fetch/decode costs and RSS; RSS alone is not the memory-isolation result.
+
+## Remaining limits
+
+Generated siblings establish behavior with additional storage accesses, not
+representative competing bids. Historical replay, production performance and
+full live-reorg coverage remain untested.
 
 ## Supporting results
 
 - [Isolated allocations, ownership and limits](archive/flashbots-parent-bal-allocation-study.md)
   and [raw allocation measurements](archive/flashbots-parent-bal-allocations.json)
+- [Disk-read methodology and results](archive/flashbots-parent-bal-disk-study.md),
+  [summary](archive/flashbots-parent-bal-disk-summary.json) and
+  [compressed raw measurements](archive/flashbots-parent-bal-disk-results.json.gz)
 - [Full methodology, mode comparisons and confidence intervals](archive/flashbots-parent-bal-eager.md)
 - [Saved benchmark results](archive/flashbots-parent-bal-lazy-primary-results.json)
   and [individual paired measurements](archive/flashbots-parent-bal-lazy-primary-pairs.csv)
