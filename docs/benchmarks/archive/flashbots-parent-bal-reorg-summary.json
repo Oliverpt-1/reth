@@ -1,0 +1,117 @@
+{
+  "scope": "actual-node generated Amsterdam two-block reorg correctness; no latency benchmark",
+  "source_revision": "ed9084b0a7ae82ba20f527d93a223c886452ecae",
+  "binary_version": "Reth Version: 2.7.0\nCommit SHA: 353e99a26d8851e93694a693b0ce040dca5858db\nBuild Timestamp: 2026-10-12T23:06:53.025885659Z\nBuild Features:\nBuild Profile: release",
+  "binary_sha256": "5ca052f1c7ee779abce2833e5abef7d693a399eb1d66af7ffa00527fc17c5bd8",
+  "harness_sha256": "75d5d48b3b22b92fe1bbe3d35746db202b407f49f60df27d1d7992b80a3c0bdc",
+  "helper_sha256": {
+    "bench_flashbots_parent_bal.py": "22e8d06eb8c366c7ab77e1d675dccb6e00a41743fe3bff3ad23a903839635194",
+    "bench_flashbots_parent_bal_paired.py": "858514164c650cd2db7a798a361409eed72d5ee58fce554a571379300cf2fef3"
+  },
+  "raw_results_sha256": "63e908b6d1de84e8f76e7fdb894d1000e58d07360d10953b993f81d46ac44b67",
+  "status": "passed",
+  "profiles": [
+    {
+      "decoded_bal_cache": "normal",
+      "mode": "disabled",
+      "canonical_head_checks": 5,
+      "two_block_reorgs": 4,
+      "accepted_root_checked_submissions": 20,
+      "wrong_root_rejections": 10,
+      "noncanonical_parent_rejections": 20,
+      "responses_match_disabled": true
+    },
+    {
+      "decoded_bal_cache": "normal",
+      "mode": "lazy",
+      "canonical_head_checks": 5,
+      "two_block_reorgs": 4,
+      "accepted_root_checked_submissions": 20,
+      "wrong_root_rejections": 10,
+      "noncanonical_parent_rejections": 20,
+      "responses_match_disabled": true
+    },
+    {
+      "decoded_bal_cache": "normal",
+      "mode": "eager-parent",
+      "canonical_head_checks": 5,
+      "two_block_reorgs": 4,
+      "accepted_root_checked_submissions": 20,
+      "wrong_root_rejections": 10,
+      "noncanonical_parent_rejections": 20,
+      "responses_match_disabled": true
+    },
+    {
+      "decoded_bal_cache": "normal",
+      "mode": "eager-submission",
+      "canonical_head_checks": 5,
+      "two_block_reorgs": 4,
+      "accepted_root_checked_submissions": 20,
+      "wrong_root_rejections": 10,
+      "noncanonical_parent_rejections": 20,
+      "responses_match_disabled": true
+    },
+    {
+      "decoded_bal_cache": "disabled",
+      "mode": "disabled",
+      "canonical_head_checks": 5,
+      "two_block_reorgs": 4,
+      "accepted_root_checked_submissions": 20,
+      "wrong_root_rejections": 10,
+      "noncanonical_parent_rejections": 20,
+      "responses_match_disabled": true
+    },
+    {
+      "decoded_bal_cache": "disabled",
+      "mode": "lazy",
+      "canonical_head_checks": 5,
+      "two_block_reorgs": 4,
+      "accepted_root_checked_submissions": 20,
+      "wrong_root_rejections": 10,
+      "noncanonical_parent_rejections": 20,
+      "responses_match_disabled": true
+    },
+    {
+      "decoded_bal_cache": "disabled",
+      "mode": "eager-parent",
+      "canonical_head_checks": 5,
+      "two_block_reorgs": 4,
+      "accepted_root_checked_submissions": 20,
+      "wrong_root_rejections": 10,
+      "noncanonical_parent_rejections": 20,
+      "responses_match_disabled": true
+    },
+    {
+      "decoded_bal_cache": "disabled",
+      "mode": "eager-submission",
+      "canonical_head_checks": 5,
+      "two_block_reorgs": 4,
+      "accepted_root_checked_submissions": 20,
+      "wrong_root_rejections": 10,
+      "noncanonical_parent_rejections": 20,
+      "responses_match_disabled": true
+    }
+  ],
+  "totals": {
+    "profiles": 8,
+    "canonical_head_checks": 40,
+    "two_block_reorgs": 32,
+    "accepted_root_checked_submissions": 160,
+    "wrong_root_rejections": 80,
+    "noncanonical_parent_rejections": 160,
+    "validation_rpc_checks": 400,
+    "new_latency_samples": 0
+  },
+  "noncanonical_response": {
+    "error": {
+      "code": -32603,
+      "message": "parent block not found"
+    }
+  },
+  "limitations": [
+    "One generated Amsterdam chain with a two-block fork; not exhaustive reorg coverage.",
+    "Arbitrary noncanonical parents are not exposed by the existing provider; this checks rejection parity, not successful root reconstruction for unavailable state.",
+    "No historical replay or production workload was used.",
+    "Uses the existing optimized no-default-feature binary; production Rust code is unchanged since its embedded revision."
+  ]
+}

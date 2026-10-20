@@ -4,8 +4,9 @@ I tested using the parent's BAL during Flashbots validation. It reduced reads
 from the state provider, and results and state roots matched in the cases tested.
 I haven't found a consistent improvement in validation time.
 
-The tests use generated Amsterdam chains. The latest run also measured verified
-Linux guest disk reads. These are not historical Sepolia or production results.
+The tests use generated Amsterdam chains. Follow-up runs measured verified
+Linux guest disk reads and checked validation across canonical-chain reorgs.
+These are not historical Sepolia or production results.
 
 ## What I tested
 
@@ -92,14 +93,42 @@ fixtures. The Mac can cache the VM's disk, so this does not prove physical SSD
 misses. The detailed report includes p95, parent-level uncertainty, all modes,
 fetch/decode costs and RSS; RSS alone is not the memory-isolation result.
 
+### Reorg validation
+
+I also ran an actual-node reorg regression across all four modes, with the decoded
+BAL cache enabled and disabled. Two forks wrote different values at the same
+heights. Across 32 two-block chain switches, all **160 valid submissions** passed
+their root checks, all **80 deliberately wrong roots** were rejected, and BAL
+hits/provider fallback matched expectations. Responses matched the disabled path.
+
+The existing provider does not expose these parents while they are noncanonical.
+All modes returned the same `parent block not found` error for **160** such
+requests. Those are rejection checks, not successful noncanonical root checks.
+Switching each fork back to canonical restored successful validation with its
+own values. This is generated-chain correctness evidence, not another timing run.
+
+## Coverage against the acceptance criteria
+
+| Criterion | Evidence and scope |
+|---|---|
+| Matching results and roots, including missing/partial BAL data, code changes, cleared slots and reorgs | Enabled/off execution fixtures cover the account/storage cases. Actual-node validation checks claimed roots. The new reorg test covers successful validation before/after canonical switches and identical rejection of unavailable noncanonical parents. |
+| BAL hits, provider fallback and no stale values after child writes | Counter assertions and child-write/storage-clear regressions passed. Reorg runs also verified per-fork values, BAL commitments, CachedReads repeats and fallback for additional slots. |
+| Before/after provider reads, BAL fetch/decode, memory and first/repeated latency | Warm-node comparisons, 1,152 guest disk-read validations and 36 allocation/lifetime cases provide these measurements. They cover generated workloads; there is no consistent overall speedup claim. |
+
+[Detailed test mapping and reorg evidence](archive/flashbots-parent-bal-reorg-study.md).
+
 ## Remaining limits
 
 Generated siblings establish behavior with additional storage accesses, not
 representative competing bids. Historical replay, production performance and
-full live-reorg coverage remain untested.
+physical host SSD misses remain untested. The reorg test covers a two-block
+generated fork, not every reorg depth, finality or concurrent-request scenario.
 
 ## Supporting results
 
+- [Reorg test and acceptance-criteria mapping](archive/flashbots-parent-bal-reorg-study.md),
+  [summary](archive/flashbots-parent-bal-reorg-summary.json) and
+  [raw checks](archive/flashbots-parent-bal-reorg-results.json.gz)
 - [Isolated allocations, ownership and limits](archive/flashbots-parent-bal-allocation-study.md)
   and [raw allocation measurements](archive/flashbots-parent-bal-allocations.json)
 - [Disk-read methodology and results](archive/flashbots-parent-bal-disk-study.md),
