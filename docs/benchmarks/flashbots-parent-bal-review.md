@@ -1,7 +1,7 @@
 # Parent BAL validation: local findings
 
 I tested using the parent's BAL to supply starting values during Flashbots
-validation, with database fallback for anything it did not contain. The child's
+validation. The child's
 writes took precedence, and all existing validation checks stayed enabled.
 
 ## What I tested
