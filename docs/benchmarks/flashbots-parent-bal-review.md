@@ -60,9 +60,11 @@ views released that memory.
 
 ## Acceptance criteria and scope
 
-All three requested categories have local evidence: matching results and roots,
-hit/fallback/child-write regressions, and before/after measurements of provider
-calls, BAL loading, memory and first/repeated validation time.
+| Acceptance criterion | What we tested | What the results support |
+|---|---|---|
+| **1. Identical results and state roots with BAL enabled or disabled**, including missing BALs, partial fields, code changes, cleared slots and reorged parents. | Compared execution results and roots across the account/storage fixtures and actual-node reorgs. Tested successful validation on each canonical fork and rejection of unavailable noncanonical parents. | Results and roots matched in the tested cases. Switching forks did not reuse stale parent values; unavailable parents produced the same error in every mode. |
+| **2. Regression tests for BAL hits, provider fallback and child writes taking precedence.** | Checked read counters, missing/partial BAL data, uncovered slots, child writes and storage clears, plus repeated requests and fork switches. | Covered reads used BAL, other reads fell back to the provider, and child writes overrode parent values. These checks passed. |
+| **3. Before/after provider reads, BAL fetch/decode cost, memory and first/repeated validation time**, accounting for overlap between parent writes and child reads. | Compared all four modes on generated workloads with full, partial and zero overlap. Measured warm/cold reads, BAL loading, memory retention and first/repeated timings; traced database pages by stage. | Provider calls fell when BAL supplied the values. Loading and retained-memory costs were measured. In the cold full-overlap test, root calculation later read the same pages, leaving total disk reads unchanged. |
 
 Historical Sepolia state and competing submissions remain untested. Disk
 measurements above are Linux VM reads, not verified physical host SSD misses;
